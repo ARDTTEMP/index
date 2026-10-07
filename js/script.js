@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
       formSuccess: 'Merci ! Votre message a bien été envoyé. Nous reviendrons vers vous rapidement.',
       donateSuccess: 'Merci pour votre générosité ! Vous allez recevoir les instructions de paiement par e-mail.',
       joinSuccess: 'Merci pour votre demande d\'adhésion ! Notre équipe vous contactera sous peu.',
-      newsletterSuccess: 'Merci, votre inscription à la newsletter est confirmée.',
+      newsletterSuccess: 'Merci, votre demande d’inscription à la newsletter a été reçue.',
       menuOpen: 'Ouvrir le menu',
       menuClose: 'Fermer le menu'
     },
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
       formSuccess: 'Thank you! Your message has been sent. We will get back to you shortly.',
       donateSuccess: 'Thank you for your generosity! Payment instructions will be sent to your email.',
       joinSuccess: 'Thank you for your membership request! Our team will contact you soon.',
-      newsletterSuccess: 'Thank you, your newsletter subscription is confirmed.',
+      newsletterSuccess: 'Thank you, your newsletter request has been received.',
       menuOpen: 'Open menu',
       menuClose: 'Close menu'
     }
@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
       link.addEventListener('click', function () {
         navWrap.classList.remove('is-open');
         navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.setAttribute('aria-label', t.menuOpen);
       });
     });
   }
@@ -184,66 +185,56 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ------------------------------------------------------------------
-     8. Validation générique de formulaires + simulation de soumission
-        NOTE : aucun backend n'est connecté ici. En production, remplacer
-        la fonction `fakeSubmit` par un véritable appel à votre service
-        d'envoi de formulaire (Formspree, API maison, etc.).
-     ------------------------------------------------------------------ */
-  function isValidEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  }
-
+  // Only acknowledge a submission after the receiving service accepts it.
   function validateField(field) {
+    var valid = field.checkValidity();
     var wrapper = field.closest('.form-field');
-    if (!wrapper) return true;
-    var valid = true;
-
-    if (field.hasAttribute('required') && !field.value.trim()) {
-      valid = false;
-    } else if (field.type === 'email' && field.value && !isValidEmail(field.value)) {
-      valid = false;
-    } else if (field.type === 'checkbox' && field.hasAttribute('required') && !field.checked) {
-      valid = false;
-    }
-
-    wrapper.classList.toggle('is-invalid', !valid);
+    if (wrapper) wrapper.classList.toggle('is-invalid', !valid);
+    field.setAttribute('aria-invalid', valid ? 'false' : 'true');
     return valid;
   }
-
   document.querySelectorAll('form[data-validate]').forEach(function (form) {
     var fields = form.querySelectorAll('input, textarea, select');
-
+    var busy = false;
     fields.forEach(function (field) {
       field.addEventListener('blur', function () { validateField(field); });
     });
-
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
-      var allValid = true;
-
+      if (busy) return;
+      var firstInvalid;
       fields.forEach(function (field) {
-        if (!validateField(field)) allValid = false;
+        if (!validateField(field) && !firstInvalid) firstInvalid = field;
       });
-
-      if (!allValid) {
-        var firstInvalid = form.querySelector('.is-invalid input, .is-invalid textarea, .is-invalid select');
-        if (firstInvalid) firstInvalid.focus();
-        return;
+      if (firstInvalid) { firstInvalid.focus(); firstInvalid.reportValidity(); return; }
+      var box = form.parentElement.querySelector('.form-success');
+      if (!box) {
+        box = document.createElement('p'); box.className = 'form-success';
+        form.appendChild(box);
       }
-
-      var successBox = form.parentElement.querySelector('.form-success') || form.querySelector('.form-success');
-      var messageKey = form.getAttribute('data-success-message') || 'formSuccess';
-
-      if (successBox) {
-        successBox.textContent = t[messageKey] || t.formSuccess;
-        successBox.classList.add('is-visible');
-        successBox.setAttribute('role', 'status');
-        successBox.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center' });
+      var button = form.querySelector('[type="submit"]');
+      busy = true;
+      form.setAttribute('aria-busy', 'true');
+      if (button) button.disabled = true;
+      box.classList.remove('is-visible');
+      try {
+        await window.ARDTTEMPForms.submit(form, lang);
+        box.textContent = t[form.getAttribute('data-success-message')] || t.formSuccess;
+        box.setAttribute('role', 'status');
+        box.classList.remove('is-error');
+        form.reset();
+      } catch (error) {
+        box.textContent = lang === 'en'
+          ? 'Your request was not confirmed. Please try again or contact projets@ardttemp.org. Your entries have been kept.'
+          : 'Votre envoi n’a pas été confirmé. Réessayez ou contactez projets@ardttemp.org. Vos informations ont été conservées.';
+        box.setAttribute('role', 'alert');
+        box.classList.add('is-error');
+      } finally {
+        busy = false;
+        form.removeAttribute('aria-busy');
+        if (button) button.disabled = false;
+        box.classList.add('is-visible');
       }
-
-      form.reset();
-      amountOptions.forEach(function (o) { o.classList.remove('is-selected'); });
     });
   });
 
