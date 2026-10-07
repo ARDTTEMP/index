@@ -1500,3 +1500,8 @@ select:focus-visible,
   .news-card--featured img { min-height: 220px; }
   .frequency-toggle { flex-direction: column; }
 }
+
+/* Submission feedback and pending state. */
+.form-success.is-error { color: #8c2222; background: #fff2f2; border-color: #b64646; }
+form[aria-busy="true"] button[type="submit"] { opacity: .65; cursor: wait; }
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { outline: 2px solid #b64646; }
