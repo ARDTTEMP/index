@@ -7,7 +7,7 @@ function setup(config, result) {
   class Data extends Map { constructor(form) { super(Object.entries(form.data)); } }
   const window = { ARDTTEMP_CONFIG: config };
   vm.runInNewContext(fs.readFileSync('js/platform-api.js', 'utf8'), {
-    window, FormData: Data, URL, AbortController, setTimeout, clearTimeout,
+    window, FormData: Data, URL, AbortController, crypto: require('node:crypto').webcrypto, setTimeout, clearTimeout,
     fetch: async (...args) => { calls.push(args); return result; }
   });
   return { submit: window.ARDTTEMPForms.submit, calls };
@@ -45,4 +45,12 @@ test('Formspree acceptance returns a confirmed success', async () => {
   const s = setup({}, {ok:true,json:async()=>({ok:true})});
   await s.submit(form('newsletterSuccess',{email:'test@example.org'}),'en');
   assert.equal(s.calls.length,1);
+});
+test('retry keeps UUID until confirmed and includes public gateway headers', async () => {
+  const s = setup({formsEndpoint:'https://example.supabase.co/functions/v1/forms',publishableKey:'public-anon'}, {ok:false});
+  const f = form('formSuccess',{email:'test@example.org'});
+  await assert.rejects(s.submit(f,'fr'));
+  await assert.rejects(s.submit(f,'fr'));
+  assert.equal(JSON.parse(s.calls[0][1].body).submission_id, JSON.parse(s.calls[1][1].body).submission_id);
+  assert.equal(s.calls[0][1].headers.Authorization,'Bearer public-anon');
 });

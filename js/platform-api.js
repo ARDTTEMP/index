@@ -4,6 +4,7 @@
     formSuccess: 'contact', joinSuccess: 'membership',
     newsletterSuccess: 'newsletter', donateSuccess: 'donation_interest'
   };
+  var identifiers = new WeakMap();
   async function submit(form, language) {
     var operation = operations[form.getAttribute('data-success-message')];
     if (!operation) throw new Error('Unknown operation');
@@ -25,8 +26,9 @@
     var body = data;
     if (config.formsEndpoint) {
       headers['Content-Type'] = 'application/json';
-      if (config.publishableKey) headers.apikey = config.publishableKey;
-      body = JSON.stringify({ operation: operation, language: language, data: Object.fromEntries(data) });
+      if (config.publishableKey) { headers.apikey = config.publishableKey; headers.Authorization = 'Bearer ' + config.publishableKey; }
+      if (!identifiers.has(form)) identifiers.set(form, crypto.randomUUID());
+      body = JSON.stringify({ submission_id: identifiers.get(form), operation: operation, language: language, data: Object.fromEntries(data) });
     }
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, 20000);
@@ -35,7 +37,8 @@
         credentials: 'omit', redirect: 'error', signal: controller.signal });
       if (!response.ok) throw new Error('Submission rejected');
       var result = await response.json();
-      if (config.formsEndpoint ? result.ok !== true : result.ok !== true) throw new Error('Submission not confirmed');
+      if (result.ok !== true) throw new Error('Submission not confirmed');
+      identifiers.delete(form);
       return result;
     } finally { clearTimeout(timer); }
   }
