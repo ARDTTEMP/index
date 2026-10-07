@@ -1,53 +1,49 @@
-# Connexion serveur — site GitHub Pages
+# Serveur des formulaires GitHub Pages
 
-Le site publié est statique. Il ne peut pas exécuter `app/api/platform/route.ts`.
-La branche `feat/ardttemp-platform` contient l’application Next.js distincte :
-ne pas la fusionner sur la branche Pages sans changer son hébergement.
+Le site statique utilise l’Edge Function `ardttemp-website-forms` du projet
+Supabase `lhvlgbnowvjxuaudthrw`. La configuration publique se trouve dans
+`js/platform-config.js`. La clé anon publique est envoyée dans apikey et
+Authorization ; aucun secret serveur n’est inclus dans le site.
 
-## Configuration publique
+Les opérations contact, newsletter, membership et donation_interest sont
+persistées dans `private.website_submissions`, avec un statut pending.
+Les demandes sont consultables par le propriétaire dans le SQL Editor Supabase.
+Cette connexion ne crée pas de compte Auth, ne prélève aucun paiement et
+n’envoie pas encore de notification automatique. L’espace de traitement des
+Admin et le parcours Auth appartiennent à l’application Next.js distincte.
 
-`js/platform-config.js` prépare un endpoint HTTPS unique, par exemple une
-Supabase Edge Function. Laisser `formsEndpoint` vide jusqu’à son déploiement.
-Les formulaires contact, newsletter et adhésion utilisent alors leurs adresses
-Formspree existantes. Leur disponibilité doit être vérifiée avec un envoi réel
-par le propriétaire. Le don sans endpoint affiche une erreur et conserve les
-saisies : aucun paiement ni envoi n’est simulé.
+## Déploiement
 
-Seule une clé publique peut être renseignée dans `publishableKey`.
-Les secrets Supabase et d’envoi d’e-mails restent côté serveur.
+`server/website-forms.sql` a été exécuté dans une transaction depuis le SQL Editor.
+`server/website-forms.ts` est le code déployé par l’éditeur Edge Functions.
+La vérification JWT legacy reste activée. La clé service_role est lue
+uniquement dans l’environnement serveur pour appeler la fonction SQL privée.
 
-## Contrat POST JSON
+## Contrat et protections
 
-`{ operation, language, data }` ; réponse après persistance effective :
-`{ "ok": true }`, statut 200/201. Échec : statut 400/403/429/500.
-Opérations : contact, newsletter, membership, donation_interest.
-Le serveur doit ignorer/rejeter les champs inattendus, limiter les tailles,
-valider e-mail, consentement, montants et catégories, appliquer une protection
-anti-abus et gérer OPTIONS/CORS pour https://www.ardttemp.org.
+POST JSON `{operation, submission_id, language, data}` : succès 201 avec
+`{ok:true,id,status:"pending"}` après persistance. Le même UUID et les mêmes
+données permettent une reprise sans doublon ; un UUID réutilisé avec des
+données différentes est refusé. Les erreurs ne réinitialisent pas le formulaire.
 
-Une demande `membership` fournit `requested_role` parmi exactement
-`membre`, `benevole`, `volontaire`. Ce formulaire constitue une demande,
-pas un compte Auth : ne pas insérer un profil avec un identifiant fictif.
-Pour créer un compte, ajouter un parcours Supabase Auth vérifié. Le serveur et
-le déclencheur SQL imposent alors un profil pending et le rôle effectif public.
-L’approbation attribue le rôle demandé. Les métadonnées client ne définissent
-jamais les privilèges.
+Origines autorisées : https://www.ardttemp.org et https://ardttemp.org.
+CORS, taille, formats, montant, consentement, rôle demandé et limitation
+par adresse e-mail/source sont contrôlés côté serveur et SQL.
+Une origine autorisée n’est pas une authentification d’utilisateur.
 
-## Administration (hors endpoint public)
+La fonction publique rejette les champs role, status, points, matricule,
+user_id et actor_role. Membership autorise exactement membre, benevole,
+volontaire. Les tables privées ne sont pas exposées à anon/authenticated ;
+seul service_role peut exécuter la fonction SQL de réception.
 
-Vérifier l’utilisateur avec Supabase Auth, puis relire profiles.role et
-profiles.status. Exiger approved + super_admin pour créer/promouvoir un Admin.
-Retourner 403 sinon. Les Admins peuvent examiner/approuver les demandes,
-mais ne peuvent créer des Admins, modifier leurs propres privilèges ou
-supprimer des comptes. Préserver le matricule et protéger le dernier Super Admin.
-Ces règles nécessitent contrôles SQL/RLS et tests directs en base avant activation.
-Aucune migration en base n’est exécutée par ce changement statique.
+## Vérification
 
-## Vérification avant activation
+`server/verify-website-forms.sql` vérifie directement en base le maintien
+pending, l’absence de compte créé, l’idempotence, le refus des privilèges,
+les droits de la fonction et l’absence de droits UPDATE sur profiles.role
+et profiles.status pour authenticated. Les données SQL de test sont annulées.
+Un test HTTP identifié TEST technique a confirmé une réponse 201 pending.
 
-Tester succès, refus, indisponibilité, double clic et absence de duplication.
-Vérifier directement en base le maintien pending, les trois catégories,
-le refus des modifications directes de rôle/statut et l’autorisation Admin.
-Aucune écriture de données personnelles de test n’est faite par les tests locaux.
-
-Documentation CORS : https://supabase.com/docs/guides/functions/cors
+Les contrôles d’administration complets (Super Admin, dernier Super Admin,
+matricules, approbation) restent dans l’application Next.js ; ne pas la
+fusionner sur GitHub Pages sans hébergement serveur adapté.
