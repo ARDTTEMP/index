@@ -1,3 +1,5 @@
-// Public configuration only. Enable after deploying and verifying the server.
-// Never place a service_role key, database password or email secret here.
-window.ARDTTEMP_CONFIG = Object.freeze({ formsEndpoint: '', publishableKey: '' });
+/* Public configuration only. Server secrets remain in Supabase. */
+window.ARDTTEMP_CONFIG = Object.freeze({
+  "formsEndpoint": "https://lhvlgbnowvjxuaudthrw.supabase.co/functions/v1/ardttemp-website-forms",
+  "publishableKey": "sb_publishable_-9yLiydFMp1EtGSPinrtzg_DvqLbvL4"
+});
