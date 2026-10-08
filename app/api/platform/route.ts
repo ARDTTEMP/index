@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { z } from "zod";
-import { supabase, workerClient, authAdminClient, locale } from "@/lib/supabase";
+import { supabase, workerClient, locale } from "@/lib/supabase";
 import { REGIONS, isAdmin, memberRoles, type Profile } from "@/lib/domain";
 import { rateLimit, RateLimitUnavailableError } from "@/lib/security";
 import { drainEmails } from "@/lib/emails";
@@ -349,43 +349,21 @@ export async function POST(req: NextRequest) {
       if (p.status !== "approved" || p.role !== "super_admin")
         throw new ForbiddenError("Super Admin required");
       const d = adminInvite.parse(b);
-      let authAdmin;
-      try {
-        authAdmin = authAdminClient();
-      } catch {
-        throw new ConfigurationError("Supabase Auth invitation is not configured");
-      }
-      const { data: invited, error: inviteError } =
-        await authAdmin.auth.admin.inviteUserByEmail(d.email.toLowerCase(), {
-          data: {
-            full_name: d.full_name,
-            phone: d.phone,
-            city: d.city,
-            region: d.region,
-            locale: d.locale,
-          },
-          redirectTo:
-            (process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin) +
-            "/auth/callback?next=/reset-password",
-        });
+      const { data: invitation, error: inviteError } = await db.functions.invoke(
+        "ardttemp-admin-invite", {
+          body: { ...d, origin: req.nextUrl.origin },
+        },
+      );
       if (inviteError) {
-        if (/already|registered|exists/i.test(inviteError.message))
-          throw new ConflictError("An account already exists for this email");
-        throw new Error(inviteError.message);
+        const context = "context" in inviteError ? inviteError.context : undefined;
+        const status = context instanceof Response ? context.status : 503;
+        if (status === 401 || status === 403)
+          throw new ForbiddenError("Super Admin required");
+        if (status === 409) throw new ConflictError("Account already exists");
+        throw new ConfigurationError("Supabase invitation unavailable");
       }
-      if (!invited.user) throw new Error("Invitation did not create an account");
-      const { error: createError } = await db.rpc("create_admin_account", {
-        p_user_id: invited.user.id,
-      });
-      if (createError) {
-        await authAdmin.auth.admin.deleteUser(invited.user.id);
-        check(createError);
-      }
-      result = {
-        ok: true,
-        message: "Admin invitation sent",
-        email: d.email.toLowerCase(),
-      };
+      if (!invitation?.ok) throw new ConfigurationError("Invitation could not be saved");
+      result = { ok: true, email: d.email.toLowerCase(), message: "Admin invitation queued" };
     } else {
       const p = await actor(db);
       const adminOps = [
