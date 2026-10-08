@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, UserRound, ArrowUpRight } from "lucide-react";
 import { type Locale, text } from "@/lib/domain";
 export default function Header({ locale: l }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function Header({ locale: l }: { locale: Locale }) {
         {t("Aller au contenu", "Skip to content")}
       </a>
       <div className="topbar">
-        <Link href="/dashboard">{t("Espace membre", "Member area")}</Link>
+        <Link href="/dashboard" className="member-entry"><UserRound size={15} aria-hidden="true" /><span>{t("Espace membre", "Member area")}</span><ArrowUpRight size={14} aria-hidden="true" /></Link>
         <a href="tel:+237655508511">+237 655 50 85 11</a>
       </div>
       <header className="header">
@@ -82,7 +82,6 @@ export default function Header({ locale: l }: { locale: Locale }) {
           </Link>
         </nav>
         <div className="header-actions">
-          <Link className="member-access" href="/login">{t("Se connecter", "Sign in")}</Link>
           <div className="language" aria-label={t("Langue", "Language")}>
             {(["fr", "en"] as Locale[]).map((x) => (
               <button
