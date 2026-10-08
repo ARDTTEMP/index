@@ -266,11 +266,12 @@ export async function POST(req: NextRequest) {
       check(error);
     } else if (op === "forgot") {
       const { email } = z.object({ email: z.email() }).parse(b);
-      await db.auth.resetPasswordForEmail(email, {
+      const { error } = await db.auth.resetPasswordForEmail(email, {
         redirectTo:
           (process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin) +
           "/auth/callback?next=/reset-password",
       });
+      check(error);
     } else if (op === "reset") {
       const d = z
         .object({
