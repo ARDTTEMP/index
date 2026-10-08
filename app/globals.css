@@ -1457,6 +1457,7 @@ body { font-family: "Century Gothic", CenturyGothic, Arial, sans-serif; }
 .site-footer .footer-links, .site-footer .footer-contact { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .site-footer .footer-links { gap: .6rem; }
 .site-footer .footer-contact { gap: .8rem; }
+.site-footer .footer-contact a { display: inline; }
 .site-footer .footer-contact li { display: flex; gap: .6rem; align-items: flex-start; }
 .site-footer .footer-links a, .site-footer .footer-contact a { color: #d7e4dc; text-decoration: none; }
 .site-footer .footer-links a:hover, .site-footer .footer-contact a:hover { color: #c7522a; }
