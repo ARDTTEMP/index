@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SiteFrame from "@/components/SiteFrame";
 import { locale } from "@/lib/supabase";
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.ardttemp.org"),
@@ -21,9 +22,9 @@ export default async function RootLayout({
   return (
     <html lang={l}>
       <body>
-        <Header locale={l} />
-        <main id="main">{children}</main>
-        <Footer locale={l} />
+        <SiteFrame header={<Header locale={l} />} footer={<Footer locale={l} />}>
+          {children}
+        </SiteFrame>
       </body>
     </html>
   );
