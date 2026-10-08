@@ -356,7 +356,7 @@ export default async function PublicPage({
     };
     const descriptions = {
       login: t("Retrouvez votre espace personnel et suivez votre engagement.", "Access your personal space and follow your contribution."),
-      register: t("Rejoignez ARDTTEMP en tant que Membre, Bénévole ou Volontaire.", "Join ARDTTEMP as a Member, Volunteer or Voluntary worker."),
+      register: t("Rejoignez ARDTTEMP en tant que Membre, Bénévole ou Volontaire.", "Join ARDTTEMP as a Member, Volunteer or Field volunteer."),
       forgot: t("Indiquez l’adresse e-mail de votre compte pour recevoir un lien de récupération.", "Enter your account email to receive a recovery link."),
       reset: t("Choisissez un mot de passe personnel d’au moins 12 caractères.", "Choose a personal password of at least 12 characters."),
     };
