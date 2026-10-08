@@ -1474,3 +1474,8 @@ body { font-family: "Century Gothic", CenturyGothic, Arial, sans-serif; }
 .site-footer .footer-bottom p { font-size: inherit; color: inherit; margin: 0; }
 @media (max-width: 1000px) { .site-footer .footer-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .site-footer .footer-grid { grid-template-columns: 1fr; gap: 2rem; } .site-footer .footer-bottom { flex-direction: column; align-items: flex-start; } }
+
+/* A small, prominent entry point for the member area. */
+.topbar .member-entry { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; margin-block: 3px; border: 1px solid #c7e69b70; border-radius: 999px; background: #c7e69b18; color: #e4f5d0; font-weight: 600; line-height: 1.4; }
+.topbar .member-entry:hover { background: #c7e69b30; color: white; }
+.topbar .member-entry:focus-visible { outline: 2px solid #c7e69b; outline-offset: 3px; }
