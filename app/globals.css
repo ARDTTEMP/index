@@ -294,7 +294,7 @@ button.primary:hover {
 }
 .home-hero::after {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: 0;
   background: url("/home-collecte.webp") center 44% / cover no-repeat;
   content: "";
@@ -314,6 +314,7 @@ button.primary:hover {
 }
 .home-hero-grid {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(40px, 7vw, 95px);
@@ -1390,7 +1391,7 @@ body { font-family: "Century Gothic", CenturyGothic, Arial, sans-serif; }
 .card { border-radius: 20px; border-color: #e0e9e3; box-shadow: 0 8px 30px #103e2606; }
 .page-intro { background: #f1f6ef; border-bottom: 1px solid var(--line); }
 .member-access { color: var(--green); font-weight: 600; white-space: nowrap; }
-.home-hero .hero-login { border-color: #ffffff80; background: #103e2650; color: white; }
+.home-hero .hero-login { border-color: var(--green); background: var(--green); color: white; }
 .auth-shell { border-radius: 24px; box-shadow: 0 16px 64px #103e2610; background: white; padding: 40px; }
 .auth-shell h1 { font-family: "Times New Roman", Times, serif; font-size: 2.7rem; }
 .auth-shell .step-indicator { padding: 15px; border: 0; border-radius: 12px; background: var(--pale); }
