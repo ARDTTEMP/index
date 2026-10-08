@@ -14,6 +14,7 @@ import { content } from "@/lib/content";
 import existing from "@/lib/existing-content.json";
 import { text, type Locale } from "@/lib/domain";
 import PublicForm from "@/components/PublicForm";
+import { AuthTools, AuthHome } from "@/components/SiteFrame";
 const icons = [Recycle, FlaskConical, GraduationCap, HeartHandshake];
 function Pillars({ l }: { l: Locale }) {
   return (
@@ -347,37 +348,33 @@ export default async function PublicPage({
         : route === "reset-password"
           ? "reset"
           : (route as "login" | "register");
-    return (
-      <div className="auth-shell">
-        <p className="eyebrow">
-          ARDTTEMP · {t("Espace membre", "Member area")}
-        </p>
-        <h1>
-          {kind === "login"
-            ? t("Heureux de vous retrouver.", "Welcome back.")
-            : kind === "register"
-              ? t(
-                  "Votre engagement commence ici.",
-                  "Your commitment starts here.",
-                )
-              : t("Votre mot de passe", "Your password")}
-        </h1>
-        <p className="lead">
-          {kind === "register"
-            ? t(
-                "Créez votre compte et présentez votre demande d’adhésion.",
-                "Create your account and submit your membership application.",
-              )
-            : t(
-                "Un espace pour agir, partager et suivre votre engagement.",
-                "A space to act, share and follow your contribution.",
-              )}
-        </p>
-        <Suspense>
-          <PublicForm kind={kind} locale={l} />
-        </Suspense>
-      </div>
-    );
+    const headings = {
+      login: t("Se connecter", "Sign in"),
+      register: t("Créer mon compte", "Create my account"),
+      forgot: t("Mot de passe oublié ?", "Forgot your password?"),
+      reset: t("Définir mon mot de passe", "Set my password"),
+    };
+    const descriptions = {
+      login: t("Retrouvez votre espace personnel et suivez votre engagement.", "Access your personal space and follow your contribution."),
+      register: t("Rejoignez ARDTTEMP en tant que Membre, Bénévole ou Volontaire.", "Join ARDTTEMP as a Member, Volunteer or Voluntary worker."),
+      forgot: t("Indiquez l’adresse e-mail de votre compte pour recevoir un lien de récupération.", "Enter your account email to receive a recovery link."),
+      reset: t("Choisissez un mot de passe personnel d’au moins 12 caractères.", "Choose a personal password of at least 12 characters."),
+    };
+    const resetUser = kind === "reset" ? await (await supabase()).auth.getUser() : null;
+    return <div className="auth-stage">
+      <section className={`auth-shell auth-${kind}`} aria-labelledby="auth-title">
+        <AuthTools locale={l} />
+        <p className="auth-kicker">{t("Espace membre", "Member area")}</p>
+        <h1 id="auth-title">{headings[kind]}</h1>
+        <p className="auth-description">{descriptions[kind]}</p>
+        {kind === "reset" && !resetUser?.data.user ? <div className="auth-expired">
+          <p className="notice warning" role="status">{t("Ce lien n’est plus valide. Demandez un nouveau lien pour définir votre mot de passe.", "This link is no longer valid. Request a new link to set your password.")}</p>
+          <Link href="/forgot-password" className="button">{t("Recevoir un nouveau lien", "Get a new link")}</Link>
+          <Link href="/login" className="link">{t("Retour à la connexion", "Back to sign in")}</Link>
+        </div> : <Suspense><PublicForm kind={kind} locale={l} /></Suspense>}
+      </section>
+      <AuthHome locale={l} />
+    </div>;
   }
   if (route.startsWith("news/") && slug.length === 2) {
     const db = await supabase();
