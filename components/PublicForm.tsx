@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -24,14 +24,15 @@ function PasswordField({ label, name, locale: l, fresh = false, required = true 
   label: string; name: string; locale: Locale; fresh?: boolean; required?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
-  return <label>{label}<span className="password-control">
-    <input name={name} type={visible ? "text" : "password"} required={required}
+  const fieldId = useId();
+  return <div style={{ display: "grid", gap: 7 }}><label htmlFor={fieldId}>{label}</label><span className="password-control">
+    <input id={fieldId} name={name} type={visible ? "text" : "password"} required={required}
       minLength={fresh ? 12 : undefined} maxLength={128}
       autoComplete={fresh ? "new-password" : "current-password"} />
-    <button type="button" aria-pressed={visible}
+    <button type="button" aria-pressed={visible} aria-controls={fieldId}
       aria-label={text(l, visible ? "Masquer le mot de passe" : "Afficher le mot de passe", visible ? "Hide password" : "Show password")}
       onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={19} /> : <Eye size={19} />}</button>
-  </span></label>;
+  </span></div>;
 }
 export default function PublicForm({
   kind,
