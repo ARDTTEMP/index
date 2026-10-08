@@ -12,8 +12,8 @@ export default function Header({ locale: l }: { locale: Locale }) {
   const t = (fr: string, en: string) => text(l, fr, en);
   const nav = [
     ["/", t("Accueil", "Home")],
-    ["/about", t("L’association", "About us")],
-    ["/activities", t("Nos actions", "Our work")],
+    ["/about", t("Qui sommes-nous", "About us")],
+    ["/activities", t("Nos activités", "Our activities")],
     ["/news", t("Actualités", "News")],
     ["/contact", "Contact"],
   ];
