@@ -26,6 +26,14 @@ export async function proxy(request: NextRequest) {
       },
     });
     const { data } = await db.auth.getUser();
+    if (data.user && ["/login", "/register"].includes(request.nextUrl.pathname)) {
+      const next = request.nextUrl.searchParams.get("next");
+      const destination = next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
+        && !["/login", "/register"].includes(next.split("?")[0]) ? next : "/dashboard";
+      const r = NextResponse.redirect(new URL(destination, request.url));
+      response.cookies.getAll().forEach((c) => r.cookies.set(c));
+      return r;
+    }
     if (request.nextUrl.pathname.startsWith("/dashboard")) {
       if (!data.user) {
         const u = new URL("/login", request.url);
