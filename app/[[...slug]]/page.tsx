@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   Recycle,
   GraduationCap,
@@ -762,6 +762,10 @@ function NewsByline({n,l}:{n:{author_name?:string;published_at?:string;created_a
 }
 async function News({ l, page }: { l: Locale; page:number }) {
   const db = await supabase();
+  if (page > 1) {
+    const { count, error } = await db.from("news").select("id", { count: "exact", head: true }).eq("published", true);
+    if (!error && count !== null && (page - 1) * 12 >= count) redirect("/news");
+  }
   const { data, error, count } = await db
     .from("news")
     .select("id,title_fr,title_en,content_fr,content_en,cover_image,author_name,published_at,created_at", {count:"exact"})
