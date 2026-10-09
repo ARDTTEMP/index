@@ -62,6 +62,12 @@ export default function MediaManager({
             "Photos are resized and converted to WebP before upload. Videos are set up for deferred playback and receive a poster image.",
           )}
         </p>
+        <p>
+          {t(
+            "Sans version anglaise, le texte français sera repris.",
+            "Without an English version, the French text will be reused.",
+          )}
+        </p>
         <form
           ref={formRef}
           className="form"
@@ -90,7 +96,7 @@ export default function MediaManager({
                 setProgress(
                   t("Optimisation de la photo…", "Optimizing photo…"),
                 );
-                file = await optimizeImage(selected);
+                file = await optimizeImage(selected, 1600, 0.78);
                 mediaType = "image";
               } else if (selected.type.startsWith("video/")) {
                 if (!/^video\/(mp4|webm|quicktime)$/.test(selected.type))
@@ -126,6 +132,13 @@ export default function MediaManager({
                   ),
                 );
                 file = encoded || selected;
+                if (!encoded)
+                  setProgress(
+                    t(
+                      "Compression indisponible : envoi de l’original avec miniature.",
+                      "Compression unavailable: uploading the original with a poster.",
+                    ),
+                  );
                 mediaType = "video";
                 if (file.size > 50 * 1024 * 1024)
                   throw new Error(
@@ -198,8 +211,8 @@ export default function MediaManager({
               <input name="title_fr" required minLength={2} maxLength={200} />
             </label>
             <label>
-              {t("Titre en anglais", "English title")}
-              <input name="title_en" required minLength={2} maxLength={200} />
+              {t("Titre en anglais (facultatif)", "English title (optional)")}
+              <input name="title_en" minLength={2} maxLength={200} />
             </label>
           </div>
           <div className="form-grid">
@@ -298,18 +311,28 @@ export async function optimizeImage(
   if (!context) throw new Error("Impossible de préparer cette image.");
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  const blob = await new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob(
-      (result) =>
-        result
-          ? resolve(result)
-          : reject(new Error("Conversion WebP impossible.")),
-      "image/webp",
-      quality,
-    ),
-  );
-  if (blob.size > 50 * 1024 * 1024)
-    throw new Error("La photo optimisée dépasse 50 Mo.");
+  const encode = (encodingQuality: number) =>
+    new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob(
+        (result) =>
+          result
+            ? resolve(result)
+            : reject(new Error("Conversion WebP impossible.")),
+        "image/webp",
+        encodingQuality,
+      ),
+    );
+  let blob = await encode(quality);
+  for (
+    let nextQuality = quality - 0.1;
+    blob.size > 4 * 1024 * 1024 && nextQuality >= 0.42;
+    nextQuality -= 0.1
+  )
+    blob = await encode(nextQuality);
+  if (blob.type !== "image/webp")
+    throw new Error("Conversion WebP indisponible dans ce navigateur.");
+  if (blob.size > 4 * 1024 * 1024)
+    throw new Error("La photo optimisée dépasse 4 Mo.");
   return new File([blob], `${source.name.replace(/\.[^.]+$/, "")}.webp`, {
     type: "image/webp",
   });
@@ -356,6 +379,7 @@ function optimizeVideo(
   source: File,
   onProgress: (percent: number) => void,
 ): Promise<File | null> {
+  if (typeof MediaRecorder === "undefined") return Promise.resolve(null);
   const mime = [
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
@@ -367,7 +391,9 @@ function optimizeVideo(
     const video = document.createElement("video");
     const url = URL.createObjectURL(source);
     video.preload = "metadata";
+    let audioContext: AudioContext | null = null;
     const cleanup = () => {
+      void audioContext?.close();
       URL.revokeObjectURL(url);
       video.pause();
       video.src = "";
@@ -386,7 +412,10 @@ function optimizeVideo(
         reject(new Error("La vidéo doit durer moins de 3 minutes."));
         return;
       }
-      const scale = Math.min(1, 1280 / video.videoWidth);
+      const scale = Math.min(
+        1,
+        1280 / Math.max(video.videoWidth, video.videoHeight),
+      );
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(
         2,
@@ -403,23 +432,38 @@ function optimizeVideo(
         return;
       }
       const stream = canvas.captureStream(24);
-      const captureVideo = video as HTMLVideoElement & {
-        captureStream?: () => MediaStream;
-      };
+      // Capture the source sound independently of browser video.captureStream support.
       try {
-        for (const track of captureVideo.captureStream?.().getAudioTracks() ||
-          [])
+        audioContext = new AudioContext();
+        const audioSource = audioContext.createMediaElementSource(video);
+        const destination = audioContext.createMediaStreamDestination();
+        audioSource.connect(destination);
+        await audioContext.resume();
+        if (audioContext.state !== "running")
+          throw new Error("Audio encoding unavailable");
+        for (const track of destination.stream.getAudioTracks())
           stream.addTrack(track);
       } catch {
-        /* Audio capture support varies by browser. */
+        stream.getTracks().forEach((track) => track.stop());
+        cleanup();
+        resolve(null); // Preserve the original file rather than publish a silent copy.
+        return;
       }
       const chunks: BlobPart[] = [];
       let stopReason = "";
-      const recorder = new MediaRecorder(stream, {
-        mimeType: mime,
-        videoBitsPerSecond: 1_100_000,
-        audioBitsPerSecond: 96_000,
-      });
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, {
+          mimeType: mime,
+          videoBitsPerSecond: 1_100_000,
+          audioBitsPerSecond: 96_000,
+        });
+      } catch {
+        stream.getTracks().forEach((track) => track.stop());
+        cleanup();
+        resolve(null);
+        return;
+      }
       const draw = () => {
         if (video.paused || video.ended) return;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -441,6 +485,8 @@ function optimizeVideo(
         }
       };
       recorder.onerror = () => {
+        stopReason = "Échec de l’encodage vidéo.";
+        stream.getTracks().forEach((track) => track.stop());
         cleanup();
         reject(new Error("Échec de l’encodage vidéo."));
       };
@@ -467,6 +513,7 @@ function optimizeVideo(
           if (recorder.state !== "inactive") recorder.stop();
         };
       } catch {
+        stopReason = "Impossible de démarrer l’optimisation vidéo.";
         if (recorder.state !== "inactive") recorder.stop();
         else {
           cleanup();
