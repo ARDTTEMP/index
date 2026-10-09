@@ -92,12 +92,15 @@ function CTA({ l }: { l: Locale }) {
   );
 }
 export default async function PublicPage({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ slug?: string[] }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { slug = [] } = await params;
   const route = slug.join("/");
+  const requestedPage = Number((await searchParams).page);
+  const newsPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage,1000000) : 1;
   const l = await locale();
   const c = content[l];
   const t = (fr: string, en: string) => text(l, fr, en);
@@ -443,12 +446,14 @@ export default async function PublicPage({
           <div className="container prose">
             <p className="eyebrow">{t("Actualités", "News")}</p>
             <h1>{n["title_" + l]}</h1>
-            <p>{new Date(n.created_at).toLocaleDateString(l)}</p>
+            <NewsByline n={n} l={l} />
           </div>
         </section>
         <article className="section">
-          <div className="container prose article-body">
-            {n["content_" + l]}
+          <div className="container prose">
+            {n.cover_image && <img className="article-cover" src={n.cover_image} alt={n["title_"+l]} decoding="async" />}
+            <div className="article-body">{n["content_" + l]}</div>
+            <Link className="link article-back" href="/news">{t("← Toutes les actualités", "← All news")}</Link>
           </div>
         </article>
       </>
@@ -683,7 +688,7 @@ export default async function PublicPage({
               </aside>
             </div>
           )}
-          {route === "news" && <News l={l} />}
+          {route === "news" && <News l={l} page={newsPage} />}
           {route === "privacy" && (
             <div className="prose">
               <h2>
@@ -751,13 +756,18 @@ export default async function PublicPage({
     </>
   );
 }
-async function News({ l }: { l: Locale }) {
+function NewsByline({n,l}:{n:{author_name?:string;published_at?:string;created_at:string};l:Locale}) {
+  const date = n.published_at || n.created_at;
+  return <p className="news-byline"><span>{text(l,"Par","By")} {n.author_name || "ARDTTEMP"}</span><span aria-hidden="true"> · </span><time dateTime={date}>{new Date(date).toLocaleString(l, {timeZone:"Africa/Douala",dateStyle:"long",timeStyle:"short"})}</time><span> {text(l,"(heure du Cameroun)","(Cameroon time)")}</span></p>;
+}
+async function News({ l, page }: { l: Locale; page:number }) {
   const db = await supabase();
-  const { data, error } = await db
+  const { data, error, count } = await db
     .from("news")
-    .select("id,title_fr,title_en,content_fr,content_en,created_at")
+    .select("id,title_fr,title_en,content_fr,content_en,cover_image,author_name,published_at,created_at", {count:"exact"})
     .eq("published", true)
-    .order("created_at", { ascending: false });
+    .order("published_at", { ascending: false }).order("id")
+    .range((page-1)*12,page*12-1);
   if (error)
     return (
       <p className="notice error">
@@ -771,18 +781,15 @@ async function News({ l }: { l: Locale }) {
   if (!data?.length)
     return (
       <div className="empty">
-        {text(
-          l,
-          "Nos prochaines actualités seront publiées ici.",
-          "Our next updates will appear here.",
-        )}
+        {(count || 0) > 0 ? <Link className="button outline" href="/news">{text(l,"Revenir aux actualités","Back to news")}</Link> : text(l,"Nos prochaines actualités seront publiées ici.","Our next updates will appear here.")}
       </div>
     );
   return (
-    <div className="grid three">
+    <><div className="grid three">
       {data.map((n) => (
         <article className="card news-card" key={n.id}>
-          <time>{new Date(n.created_at).toLocaleDateString(l)}</time>
+          {n.cover_image && <Link href={"/news/"+n.id} tabIndex={-1} aria-hidden="true"><img className="news-card-cover" src={n.cover_image} alt="" loading="lazy" decoding="async" /></Link>}
+          <NewsByline n={n} l={l} />
           <h2>{n[("title_" + l) as "title_fr" | "title_en"]}</h2>
           <p>
             {n[("content_" + l) as "content_fr" | "content_en"].slice(0, 180)}…
@@ -795,5 +802,10 @@ async function News({ l }: { l: Locale }) {
         </article>
       ))}
     </div>
+    {(count||0)>12 && <nav className="actions news-pagination" aria-label={text(l,"Pagination des actualités","News pagination")}>
+      {page>1&&<Link className="button outline" href={"/news?page="+(page-1)}>{text(l,"Précédent","Previous")}</Link>}
+      <span>{page} / {Math.ceil((count||0)/12)}</span>
+      {page*12<(count||0)&&<Link className="button outline" href={"/news?page="+(page+1)}>{text(l,"Suivant","Next")}</Link>}
+    </nav>}</>
   );
 }
