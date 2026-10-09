@@ -1117,7 +1117,17 @@ async function upload(req: NextRequest) {
       .eq("id", p.id)
       .select("id")
       .single();
-    check(profileError);
+    if (profileError) {
+      await db.storage.from(bucket).remove([path]);
+      check(profileError);
+    }
+    // Only remove the caller's previous object after the new profile was saved.
+    if (
+      p.avatar_url &&
+      p.avatar_url.startsWith(`${p.id}/`) &&
+      p.avatar_url !== path
+    )
+      await db.storage.from(bucket).remove([p.avatar_url]);
   }
   return NextResponse.json({ path });
 }
