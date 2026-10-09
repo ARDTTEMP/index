@@ -57,7 +57,6 @@ export default function Workspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const stableAvatars = useRef(
     new Map<string, { url: string; expires: number }>(),
   );
@@ -252,6 +251,37 @@ export default function Workspace({
     "admin/groups",
     "admin/rewards",
   ];
+  const navigationGroups = [
+    {
+      title: t("Mon espace personnel", "My personal area"),
+      items: memberNav.filter(
+        (v) => profile.role !== "super_admin" || v !== "rewards",
+      ),
+    },
+    ...(admin
+      ? [
+          {
+            title: t("Adhésions & communauté", "Membership & community"),
+            items: adminNav.filter((v) =>
+              [
+                "admin/overview",
+                "admin/requests",
+                "admin/members",
+                "admin/groups",
+              ].includes(v),
+            ),
+          },
+          {
+            title: t("Publications & terrain", "Publications & fieldwork"),
+            items: ["admin/news", "admin/media", "admin/reports"],
+          },
+          {
+            title: t("Finances & récompenses", "Finance & rewards"),
+            items: ["admin/dues", "admin/donations", "admin/rewards"],
+          },
+        ]
+      : []),
+  ];
   const permitted = profile.status === "approved";
   const reward = threshold(profile.role);
   const rewards: Row[] =
@@ -276,57 +306,53 @@ export default function Workspace({
             <small>{roleLabels[l][profile.role]}</small>
           </div>
         </div>
-        <button
-          type="button"
-          className="workspace-menu-toggle"
-          aria-expanded={menuOpen}
-          aria-controls="workspace-navigation"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {t("Menu de mon espace", "Workspace menu")}{" "}
-          <span>{menuOpen ? "−" : "+"}</span>
-        </button>
-        <nav
-          id="workspace-navigation"
-          className={"workspace-navigation" + (menuOpen ? " is-open" : "")}
-        >
-          {[
-            {
-              title: t("Mon espace personnel", "My personal area"),
-              items: memberNav.filter(
-                (v) => profile.role !== "super_admin" || v !== "rewards",
-              ),
-            },
-            ...(admin
-              ? [
-                  {
-                    title: t(
-                      "Adhésions & communauté",
-                      "Membership & community",
-                    ),
-                    items: adminNav.filter((v) =>
-                      [
-                        "admin/overview",
-                        "admin/requests",
-                        "admin/members",
-                        "admin/groups",
-                      ].includes(v),
-                    ),
-                  },
-                  {
-                    title: t(
-                      "Publications & terrain",
-                      "Publications & fieldwork",
-                    ),
-                    items: ["admin/news", "admin/media", "admin/reports"],
-                  },
-                  {
-                    title: t("Finances & récompenses", "Finance & rewards"),
-                    items: ["admin/dues", "admin/donations", "admin/rewards"],
-                  },
-                ]
-              : []),
-          ].map((group) => (
+        <label className="workspace-mobile-menu">
+          <span>{t("Naviguer dans mon espace", "Navigate my workspace")}</span>
+          <select
+            value={
+              view.startsWith("groups/")
+                ? "groups"
+                : view === "reports/new"
+                  ? "reports"
+                  : view
+            }
+            onChange={async (event) => {
+              const destination = event.target.value;
+              if (destination === "logout") {
+                await api({ op: "logout" });
+                router.push("/login");
+                router.refresh();
+              } else
+                router.push(
+                  destination === "public"
+                    ? "/"
+                    : destination === "overview"
+                      ? "/dashboard"
+                      : destination === "admin/overview"
+                        ? "/dashboard/admin"
+                        : "/dashboard/" + destination,
+                );
+            }}
+          >
+            {navigationGroups.map((group) => (
+              <optgroup key={group.title} label={group.title}>
+                {group.items.map((v) => (
+                  <option key={v} value={v}>
+                    {labels[v]}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <optgroup label={t("Autres actions", "Other actions")}>
+              <option value="public">
+                {t("Voir le site public", "View public website")}
+              </option>
+              <option value="logout">{t("Déconnexion", "Sign out")}</option>
+            </optgroup>
+          </select>
+        </label>
+        <nav id="workspace-navigation" className="workspace-navigation">
+          {navigationGroups.map((group) => (
             <section className="workspace-nav-group" key={group.title}>
               <h2>{group.title}</h2>
               {group.items.map((v) => {
@@ -344,7 +370,6 @@ export default function Workspace({
                     }
                     className={active ? "active" : ""}
                     aria-current={active ? "page" : undefined}
-                    onClick={() => setMenuOpen(false)}
                   >
                     <Icon size={18} aria-hidden="true" />
                     <span>{labels[v]}</span>
