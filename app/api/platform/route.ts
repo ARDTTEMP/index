@@ -264,7 +264,7 @@ export async function GET(req: NextRequest) {
         check(settingError);
         let paymentsQuery = db
           .from("membership_payments")
-          .select("*,profiles(full_name,matricule)")
+          .select("*,profiles!membership_payments_user_id_fkey(full_name,matricule)")
           .order("created_at", { ascending: false });
         if (view === "dues") paymentsQuery = paymentsQuery.eq("user_id", p.id);
         const { data: payments, error: paymentError } = await paymentsQuery;
