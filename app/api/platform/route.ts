@@ -6,6 +6,40 @@ import { rateLimit, RateLimitUnavailableError } from "@/lib/security";
 import { drainEmails } from "@/lib/emails";
 import { fallbackInstructions } from "@/lib/payments";
 import { errorMessage } from "@/lib/errors";
+// Short-lived, caller-scoped cache. Authorization/RLS are checked on every request.
+const avatarLinks = new Map<string, { url: string; expires: number }>();
+async function signAvatars(
+  db: Awaited<ReturnType<typeof supabase>>,
+  caller: string,
+  paths: string[],
+) {
+  const now = Date.now();
+  for (const [key, item] of avatarLinks)
+    if (item.expires <= now) avatarLinks.delete(key);
+  const missing = paths.filter((path) => !avatarLinks.has(`${caller}:${path}`));
+  if (missing.length) {
+    const { data, error } = await db.storage
+      .from("profile-photos")
+      .createSignedUrls(missing, 900);
+    check(error);
+    for (const item of data || []) {
+      if (item.path && item.signedUrl) {
+        if (avatarLinks.size >= 500)
+          avatarLinks.delete(avatarLinks.keys().next().value!);
+        avatarLinks.set(`${caller}:${item.path}`, {
+          url: item.signedUrl,
+          expires: now + 600000,
+        });
+      }
+    }
+  }
+  return new Map(
+    paths.map((path) => [
+      path,
+      avatarLinks.get(`${caller}:${path}`)?.url || null,
+    ]),
+  );
+}
 const uuid = z.string().uuid();
 const short = z.string().trim().min(2).max(200);
 const phone = z.string().trim().min(6).max(30);
@@ -129,12 +163,7 @@ export async function GET(req: NextRequest) {
               ),
           ),
         ];
-        const signed = paths.length
-          ? await db.storage.from("profile-photos").createSignedUrls(paths, 900)
-          : null;
-        const urls = new Map(
-          signed?.data?.map((item) => [item.path, item.signedUrl]) || [],
-        );
+        const urls = await signAvatars(db, p.id, paths);
         data = {
           group: g,
           messages: messages.map((message) => ({
@@ -287,10 +316,8 @@ export async function GET(req: NextRequest) {
       p.avatar_url &&
       /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.webp$/.test(p.avatar_url)
     ) {
-      const { data: photo } = await db.storage
-        .from("profile-photos")
-        .createSignedUrl(p.avatar_url, 900);
-      profilePhoto = photo?.signedUrl || null;
+      profilePhoto =
+        (await signAvatars(db, p.id, [p.avatar_url])).get(p.avatar_url) || null;
     }
     return NextResponse.json(
       { profile: { ...p, avatar_url: profilePhoto }, data },
@@ -1057,7 +1084,11 @@ async function upload(req: NextRequest) {
       : `groups/${uuid.parse(form.get("group_id"))}/${p.id}/${crypto.randomUUID()}.${ext}`;
   const { error } = await db.storage
     .from(bucket)
-    .upload(path, bytes, { contentType: file.type, upsert: false });
+    .upload(path, bytes, {
+      contentType: file.type,
+      upsert: false,
+      cacheControl: "31536000",
+    });
   check(error);
   if (bucket === "profile-photos") {
     const { error: profileError } = await db
