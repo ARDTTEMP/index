@@ -1,9 +1,21 @@
 import { ZodError } from "zod";
 import { type Locale, text } from "./domain";
 const french: Record<string, string> = {
-  "Submission service unavailable": "Le service est momentanément indisponible. Vos informations sont conservées dans le formulaire ; réessayez plus tard.",
+  "Dues payment instructions not configured":
+    "Le Super Admin doit d’abord enregistrer le montant et les instructions de cotisation.",
+  "Account not eligible for dues":
+    "La cotisation concerne les comptes Membre et Volontaire. Les bénévoles sont exonérés.",
+  "Payment must be submitted first":
+    "Le membre doit d’abord soumettre sa référence de paiement pour vérification.",
+  "Rejection comment required":
+    "Ajoutez un commentaire avant de refuser le paiement.",
+  "Cover photo not uploaded":
+    "La photo de couverture n’a pas été enregistrée. Relancez son envoi.",
+  "Submission service unavailable":
+    "Le service est momentanément indisponible. Vos informations sont conservées dans le formulaire ; réessayez plus tard.",
   "Super Admin required": "Cette action est réservée au Super Admin.",
-  "At least one Super Admin must remain approved": "Le dernier Super Admin actif ne peut pas être rétrogradé ou suspendu.",
+  "At least one Super Admin must remain approved":
+    "Le dernier Super Admin actif ne peut pas être rétrogradé ou suspendu.",
   "Authentication required": "Veuillez vous connecter.",
   "Profile unavailable": "Le profil est indisponible.",
   Forbidden: "Vous n’avez pas les droits nécessaires.",
