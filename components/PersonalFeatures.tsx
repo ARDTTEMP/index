@@ -297,8 +297,8 @@ export function DuesPanel({
               )}
               <p className="form-note">
                 {t(
-                  "Après votre versement, transmettez sa référence ou son justificatif ci-dessous. La cotisation sera confirmée après vérification par l’association.",
-                  "After paying, submit its reference or receipt below. The association will confirm your fee after verification.",
+                  "Après votre versement, transmettez sa référence ou son justificatif ci-dessous. La cotisation sera confirmée après vérification par l’association et donnera droit à 200 points, une seule fois par période.",
+                  "After paying, submit its reference or receipt below. The association will confirm your fee after verification and award 200 points once per period.",
                 )}
               </p>
               {!data.payments.some(

@@ -33,6 +33,8 @@ export default function MediaManager({
   const t = (fr: string, en: string) => text(l, fr, en);
 
   async function upload(file: File, contentType: string) {
+    if (contentType === "image/webp")
+      return uploadPublicPhoto(file, "gallery-media");
     const signed = await api({
       op: "create_media_upload",
       content_type: contentType,
@@ -473,4 +475,22 @@ function optimizeVideo(
     };
     video.src = url;
   });
+}
+
+export async function uploadPublicPhoto(
+  file: File,
+  bucket: "news-photos" | "gallery-media",
+) {
+  if (file.size > 4 * 1024 * 1024)
+    throw new Error(
+      "La photo optimisée dépasse 4 Mo. Choisissez une image plus petite.",
+    );
+  const form = new FormData();
+  form.set("bucket", bucket);
+  form.set("file", file);
+  const response = await fetch("/api/platform", { method: "POST", body: form });
+  const result = await response.json();
+  if (!response.ok)
+    throw new Error(result.error || "Échec de l’envoi de la photo.");
+  return result.path as string;
 }

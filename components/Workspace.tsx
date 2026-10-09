@@ -231,19 +231,23 @@ export default function Workspace({
           </div>
         </div>
         <strong>{t("ESPACE MEMBRE", "MEMBER AREA")}</strong>
-        {memberNav.map((v) => {
-          const Icon = navIcons[v];
-          return (
-            <Link
-              key={v}
-              href={v === "overview" ? "/dashboard" : "/dashboard/" + v}
-              className={view === v || view.startsWith(v + "/") ? "active" : ""}
-            >
-              <Icon size={18} aria-hidden="true" />
-              {labels[v]}
-            </Link>
-          );
-        })}
+        {memberNav
+          .filter((v) => profile.role !== "super_admin" || v !== "rewards")
+          .map((v) => {
+            const Icon = navIcons[v];
+            return (
+              <Link
+                key={v}
+                href={v === "overview" ? "/dashboard" : "/dashboard/" + v}
+                className={
+                  view === v || view.startsWith(v + "/") ? "active" : ""
+                }
+              >
+                <Icon size={18} aria-hidden="true" />
+                {labels[v]}
+              </Link>
+            );
+          })}
         {admin && (
           <>
             <hr />
@@ -357,62 +361,71 @@ export default function Workspace({
           <>
             {view === "overview" && (
               <>
-                <div className="grid two">
-                  <div className="card">
-                    <h3>{t("Points d’engagement", "Engagement points")}</h3>
-                    <div className="points-value">
-                      {profile.points}
-                      <span style={{ fontSize: "1rem", marginLeft: 10 }}>
-                        pts
-                      </span>
-                    </div>
-                    {reward !== null ? (
-                      <>
-                        <div
-                          className="progress"
-                          role="progressbar"
-                          aria-label={t(
-                            "Progression vers la récompense",
-                            "Reward progress",
-                          )}
-                          aria-valuenow={Math.min(profile.points, reward)}
-                          aria-valuemin={0}
-                          aria-valuemax={reward}
-                        >
+                <div
+                  className={
+                    profile.role === "super_admin" ? "grid" : "grid two"
+                  }
+                >
+                  {profile.role !== "super_admin" && (
+                    <div className="card">
+                      <h3>{t("Points d’engagement", "Engagement points")}</h3>
+                      <div className="points-value">
+                        {profile.points}
+                        <span style={{ fontSize: "1rem", marginLeft: 10 }}>
+                          pts
+                        </span>
+                      </div>
+                      {reward !== null ? (
+                        <>
                           <div
-                            style={{
-                              width:
-                                rewardProgress(profile.points, profile.role) +
-                                "%",
-                            }}
-                          />
-                        </div>
-                        <p>
-                          {profile.points} / {reward} pts
-                        </p>
+                            className="progress"
+                            role="progressbar"
+                            aria-label={t(
+                              "Progression vers la récompense",
+                              "Reward progress",
+                            )}
+                            aria-valuenow={Math.min(profile.points, reward)}
+                            aria-valuemin={0}
+                            aria-valuemax={reward}
+                          >
+                            <div
+                              style={{
+                                width:
+                                  rewardProgress(profile.points, profile.role) +
+                                  "%",
+                              }}
+                            />
+                          </div>
+                          <p>
+                            {profile.points} / {reward} pts
+                          </p>
+                          <p>
+                            {t(
+                              "Les points sont conservés après une récompense.",
+                              "Points are retained after a reward.",
+                            )}
+                          </p>
+                          {eligible && permitted && (
+                            <div className="actions">
+                              <Link
+                                className="button"
+                                href="/dashboard/rewards"
+                              >
+                                {t("Récompense disponible", "Reward available")}
+                              </Link>
+                            </div>
+                          )}
+                        </>
+                      ) : (
                         <p>
                           {t(
-                            "Les points sont conservés après une récompense.",
-                            "Points are retained after a reward.",
+                            "Les administrateurs gèrent les récompenses ; aucun seuil automatique ne s’applique.",
+                            "Administrators manage rewards; no automatic threshold applies.",
                           )}
                         </p>
-                        {eligible && permitted && (
-                          <div className="actions">
-                            <Link className="button" href="/dashboard/rewards">
-                              {t("Récompense disponible", "Reward available")}
-                            </Link>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <p>
-                        {t(
-                          "Les administrateurs gèrent les récompenses ; aucun seuil automatique ne s’applique.",
-                          "Administrators manage rewards; no automatic threshold applies.",
-                        )}
-                      </p>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                   <div className="card">
                     <h3>{t("Ma carte de membre", "My membership card")}</h3>
                     <h2 style={{ fontSize: "1.8rem", marginTop: 30 }}>
@@ -444,36 +457,48 @@ export default function Workspace({
                     {t("Lire les actualités", "Read news")}
                   </Link>
                 </div>
-                <h2 style={{ margin: "35px 0 20px", fontSize: "1.5rem" }}>
-                  {t("Historique des points", "Points history")}
-                </h2>
-                {!data?.history?.length ? (
-                  <Empty l={l} />
-                ) : (
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>{t("Date", "Date")}</th>
-                          <th>{t("Motif", "Reason")}</th>
-                          <th>Points</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.history.map((r: Row) => (
-                          <tr key={r.id}>
-                            <td>{date(r.created_at, l)}</td>
-                            <td>
-                              {r.reason === "membership_approved"
-                                ? t("Adhésion approuvée", "Membership approved")
-                                : t("Rapport validé", "Report approved")}
-                            </td>
-                            <td>+{r.points}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                {profile.role !== "super_admin" && (
+                  <>
+                    <h2 style={{ margin: "35px 0 20px", fontSize: "1.5rem" }}>
+                      {t("Historique des points", "Points history")}
+                    </h2>
+                    {!data?.history?.length ? (
+                      <Empty l={l} />
+                    ) : (
+                      <div className="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>{t("Date", "Date")}</th>
+                              <th>{t("Motif", "Reason")}</th>
+                              <th>Points</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.history.map((r: Row) => (
+                              <tr key={r.id}>
+                                <td>{date(r.created_at, l)}</td>
+                                <td>
+                                  {r.reason === "membership_approved"
+                                    ? t(
+                                        "Adhésion approuvée",
+                                        "Membership approved",
+                                      )
+                                    : r.reason === "dues_confirmed"
+                                      ? t(
+                                          "Cotisation confirmée",
+                                          "Membership dues confirmed",
+                                        )
+                                      : t("Rapport validé", "Report approved")}
+                                </td>
+                                <td>+{r.points}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -659,7 +684,7 @@ export default function Workspace({
                 <MessageForm group={groupId} l={l} act={act} />
               </>
             )}
-            {view === "rewards" && (
+            {view === "rewards" && profile.role !== "super_admin" && (
               <>
                 <p className="lead" style={{ marginBottom: 25 }}>
                   {t(
