@@ -1264,33 +1264,77 @@ function FileLink({
   l: Locale;
 }) {
   const [error, setError] = useState("");
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const image = /\.(webp|png|jpe?g)$/i.test(path);
   return (
-    <>
+    <div className="report-attachment">
       <button
         type="button"
         className="file-link"
+        disabled={busy}
         onClick={async () => {
-          const tab = window.open("about:blank", "_blank");
-          if (tab) tab.opener = null;
+          setBusy(true);
+          setError("");
           try {
-            const d = await api({ op: "signed_url", bucket, path });
-            if (tab) tab.location.href = d.url;
+            const result = await api({ op: "signed_url", bucket, path });
+            setUrl(result.url);
           } catch (e) {
-            tab?.close();
             setError(e instanceof Error ? e.message : "Error");
+          } finally {
+            setBusy(false);
           }
         }}
       >
         {text(
           l,
-          bucket === "activity-photos" ? "Voir la photo" : "Ouvrir le fichier",
-          bucket === "activity-photos" ? "View photo" : "Open file",
+          busy
+            ? "Chargement…"
+            : image
+              ? "Afficher la photo"
+              : "Préparer le fichier",
+          busy ? "Loading…" : image ? "Show photo" : "Prepare file",
         )}
       </button>
+      {url && (
+        <div>
+          {image && (
+            <img
+              src={url}
+              alt={text(
+                l,
+                "Photo jointe au rapport ou au message",
+                "Attached report or message photo",
+              )}
+              decoding="async"
+              loading="lazy"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 480,
+                objectFit: "contain",
+                borderRadius: 12,
+              }}
+              onError={() =>
+                setError(
+                  text(
+                    l,
+                    "La photo ne charge pas. Cliquez sur Afficher la photo pour renouveler l’accès.",
+                    "Photo could not load. Click Show photo to refresh access.",
+                  ),
+                )
+              }
+            />
+          )}
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {text(l, "Ouvrir le fichier original", "Open original file")}
+          </a>
+        </div>
+      )}
       {error && <span role="alert">{error}</span>}
-    </>
+    </div>
   );
 }
+
 async function upload(file: File, bucket: string, group?: string) {
   if (file.type.startsWith("image/"))
     file = await optimizeImage(

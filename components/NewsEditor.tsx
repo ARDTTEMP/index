@@ -31,6 +31,7 @@ export default function NewsEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
+  const [articleUrl, setArticleUrl] = useState<string | null>(null);
   const t = (fr: string, en: string) => text(l, fr, en);
   useEffect(() => {
     setData(initialData);
@@ -96,6 +97,20 @@ export default function NewsEditor({
             "A cover, your story and your byline. Your article will appear in the website news after publication.",
           )}
         </p>
+        {articleUrl && (
+          <p className="notice" role="status">
+            {t("Actualité publiée : ", "News published: ")}
+            <Link href={articleUrl} target="_blank">
+              {t("Ouvrir l’article public", "Open public article")}
+            </Link>
+          </p>
+        )}
+        <p className="form-note">
+          {t(
+            "La version anglaise est facultative. Sans traduction, le texte français est repris.",
+            "English is optional. Without a translation, the French text is used.",
+          )}
+        </p>
         <form
           key={editing?.id || "new"}
           className="form"
@@ -127,7 +142,8 @@ export default function NewsEditor({
                 );
               }
               setProgress(t("Enregistrement de l’article…", "Saving article…"));
-              await act(body);
+              const saved = (await act(body)) as { article_url?: string };
+              setArticleUrl(saved.article_url || null);
               setEditing(null);
               setFile(null);
               form.reset();
@@ -174,10 +190,9 @@ export default function NewsEditor({
                 />
               </label>
               <label>
-                {t("Titre en anglais", "English title")}
+                {t("Titre en anglais (facultatif)", "English title (optional)")}
                 <input
                   name="title_en"
-                  required
                   minLength={2}
                   maxLength={200}
                   defaultValue={editing?.title_en || ""}
@@ -196,11 +211,13 @@ export default function NewsEditor({
               />
             </label>
             <label>
-              {t("Article en anglais", "English article")}
+              {t(
+                "Article en anglais (facultatif)",
+                "English article (optional)",
+              )}
               <textarea
                 name="content_en"
                 rows={12}
-                required
                 minLength={10}
                 maxLength={50000}
                 defaultValue={editing?.content_en || ""}

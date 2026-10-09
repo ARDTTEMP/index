@@ -238,12 +238,17 @@ export function DuesPanel({
             </label>
             <label>
               {t(
-                "Instructions et bénéficiaire — anglais",
-                "Instructions and payee — English",
+                "Instructions et bénéficiaire — anglais (facultatif)",
+                "Instructions and payee — English (optional)",
               )}
+              <small>
+                {t(
+                  "Sans version anglaise, les instructions françaises seront affichées.",
+                  "Without an English version, French instructions will be displayed.",
+                )}
+              </small>
               <textarea
                 name="instructions_en"
-                required
                 minLength={10}
                 maxLength={5000}
                 defaultValue={settings.instructions_en}
