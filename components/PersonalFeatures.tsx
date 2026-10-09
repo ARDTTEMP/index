@@ -25,7 +25,14 @@ export function Avatar({
   return (
     <span className={"member-avatar" + (small ? " chat-avatar" : "")}>
       {url && /^(https:|blob:)/.test(url) ? (
-        <img src={url} alt="" decoding="async" loading="lazy" />
+        <img
+          src={url}
+          alt=""
+          width={small ? 40 : 80}
+          height={small ? 40 : 80}
+          decoding="async"
+          loading="lazy"
+        />
       ) : (
         name
           .trim()
@@ -83,7 +90,7 @@ export function AvatarUploader({
             setBusy(true);
             setError("");
             try {
-              const optimized = await optimizeImage(file, 512);
+              const optimized = await optimizeImage(file, 256, 0.72);
               await uploadPersonal(optimized, "profile-photos");
               setFile(null);
               form.reset();

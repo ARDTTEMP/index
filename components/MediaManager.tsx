@@ -285,6 +285,7 @@ export default function MediaManager({
 export async function optimizeImage(
   source: File,
   maxEdge = 1920,
+  quality = 0.82,
 ): Promise<File> {
   if (source.size > 30 * 1024 * 1024)
     throw new Error("Photo source trop lourde (30 Mo maximum).");
@@ -304,7 +305,7 @@ export async function optimizeImage(
           ? resolve(result)
           : reject(new Error("Conversion WebP impossible.")),
       "image/webp",
-      0.82,
+      quality,
     ),
   );
   if (blob.size > 50 * 1024 * 1024)

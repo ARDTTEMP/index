@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  useRef,
   type FormEvent,
   type ReactNode,
 } from "react";
@@ -56,12 +57,27 @@ export default function Workspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const stableAvatars = useRef(
+    new Map<string, { url: string; expires: number }>(),
+  );
+  const refreshing = useRef(false);
+  const chatPanel = useRef<HTMLDivElement>(null);
+  const followChat = useRef(true);
   const router = useRouter();
   const t = (fr: string, en: string) => text(l, fr, en);
   const admin = isAdmin(profile.role) && profile.status === "approved";
   const groupId = view.startsWith("groups/") ? view.split("/")[1] : null;
+  useEffect(() => {
+    followChat.current = true;
+  }, [groupId]);
+  useEffect(() => {
+    const panel = chatPanel.current;
+    if (panel && followChat.current) panel.scrollTop = panel.scrollHeight;
+  }, [data, groupId]);
   const load = useCallback(
     async (silent = false) => {
+      if (silent && refreshing.current) return;
+      refreshing.current = true;
       if (!silent) setLoading(true);
       try {
         const actual = groupId
@@ -77,12 +93,41 @@ export default function Workspace({
         );
         const d = await r.json();
         if (!r.ok) throw new Error(d.error);
-        setProfile(d.profile);
-        setData(d.data);
+        // Keep the same image URL across server instances until well before expiry.
+        const avatar = (url: string | null) => {
+          if (!url) return null;
+          const key = url.split("?")[0];
+          const now = Date.now();
+          for (const [path, value] of stableAvatars.current)
+            if (value.expires <= now) stableAvatars.current.delete(path);
+          const existing = stableAvatars.current.get(key);
+          if (existing) return existing.url;
+          if (stableAvatars.current.size >= 200)
+            stableAvatars.current.delete(
+              stableAvatars.current.keys().next().value!,
+            );
+          stableAvatars.current.set(key, { url, expires: now + 240000 });
+          return url;
+        };
+        d.profile.avatar_url = avatar(d.profile.avatar_url);
+        for (const message of d.data?.messages || [])
+          if (message.profiles)
+            message.profiles.avatar_url = avatar(message.profiles.avatar_url);
+        setProfile((previous) =>
+          JSON.stringify(previous) === JSON.stringify(d.profile)
+            ? previous
+            : d.profile,
+        );
+        setData((previous: any) =>
+          JSON.stringify(previous) === JSON.stringify(d.data)
+            ? previous
+            : d.data,
+        );
         setError("");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Error");
       } finally {
+        refreshing.current = false;
         setLoading(false);
       }
     },
@@ -637,7 +682,19 @@ export default function Workspace({
             {groupId && permitted && (
               <>
                 <p style={{ marginBottom: 20 }}>{data?.group?.description}</p>
-                <div className="chat">
+                <div
+                  className="chat"
+                  ref={chatPanel}
+                  onScroll={() => {
+                    const panel = chatPanel.current;
+                    if (panel)
+                      followChat.current =
+                        panel.scrollHeight -
+                          panel.scrollTop -
+                          panel.clientHeight <
+                        100;
+                  }}
+                >
                   {data?.messages?.length ? (
                     data.messages.map((m: Row) => (
                       <article
@@ -1235,7 +1292,16 @@ function FileLink({
   );
 }
 async function upload(file: File, bucket: string, group?: string) {
-  if (file.type.startsWith("image/")) file = await optimizeImage(file);
+  if (file.type.startsWith("image/"))
+    file = await optimizeImage(
+      file,
+      bucket === "group-files" ? 1280 : 1920,
+      bucket === "group-files" ? 0.75 : 0.82,
+    );
+  if (file.size > 4 * 1024 * 1024)
+    throw new Error(
+      "Fichier trop volumineux : 4 Mo maximum après optimisation.",
+    );
   const fd = new FormData();
   fd.set("file", file);
   fd.set("bucket", bucket);
@@ -1400,8 +1466,8 @@ function MessageForm({
       <label>
         {text(
           l,
-          "Pièce jointe — image, PDF ou texte, 10 Mo maximum",
-          "Attachment — image, PDF or text, maximum 10 MB",
+          "Pièce jointe — photo compressée, PDF ou texte, 4 Mo maximum",
+          "Attachment — compressed photo, PDF or text, maximum 4 MB",
         )}
         <input
           type="file"
