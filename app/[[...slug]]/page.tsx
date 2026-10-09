@@ -361,7 +361,16 @@ export default async function PublicPage({
       reset: t("Choisissez un mot de passe personnel d’au moins 12 caractères.", "Choose a personal password of at least 12 characters."),
     };
     const resetUser = kind === "reset" ? await (await supabase()).auth.getUser() : null;
-    return <div className="auth-stage">
+    const illustrated = kind === "login" || kind === "register";
+    return <div className={`auth-stage${illustrated ? " auth-illustrated" : ""}`}>
+      {illustrated && <aside className="auth-story" aria-label={t("Notre engagement", "Our commitment")}>
+        <Image src="/auth-community.webp" alt={t("Des bénévoles mobilisés pour une opération de collecte et de recyclage.", "Volunteers taking part in a collection and recycling activity.")} fill sizes="(max-width: 760px) 100vw, 440px" priority />
+        <div className="auth-story-copy">
+          <p className="auth-story-label">ARDTTEMP</p>
+          <h2>{t("Transformons notre environnement ensemble.", "Let’s transform our environment together.")}</h2>
+          <p>{t("Chaque engagement compte. Le vôtre commence ici.", "Every contribution matters. Yours starts here.")}</p>
+        </div>
+      </aside>}
       <section className={`auth-shell auth-${kind}`} aria-labelledby="auth-title">
         <AuthTools locale={l} />
         <p className="auth-kicker">{t("Espace membre", "Member area")}</p>
