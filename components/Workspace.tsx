@@ -22,6 +22,8 @@ import {
 } from "@/lib/domain";
 import { api } from "./PublicForm";
 import MediaManager from "./MediaManager";
+import NewsEditor from "./NewsEditor";
+import { AuthTools } from "./SiteFrame";
 import { LayoutDashboard, UserRound, FileText, UsersRound, Award, ShieldCheck, ClipboardCheck, ImageIcon, HeartHandshake, Newspaper, LogOut, ArrowUpRight, Leaf } from "lucide-react";
 type Row = Record<string, any>;
 export default function Workspace({
@@ -157,7 +159,8 @@ export default function Workspace({
   const eligible = reward !== null && profile.points >= reward * (used + 1);
   return (
     <div className="dashboard-shell">
-      <aside className="sidebar">
+      <aside className="sidebar" aria-label={t("Navigation de votre espace", "Workspace navigation")}>
+        <AuthTools locale={l} />
         <div className="sidebar-identity">
           <span className="member-avatar" aria-hidden="true">{profile.full_name.trim().split(/\s+/).slice(0, 2).map(n => n[0]).join("").toUpperCase()}</span>
           <div><b>{profile.full_name}</b><small>{roleLabels[l][profile.role]}</small></div>
@@ -192,6 +195,7 @@ export default function Workspace({
           </>
         )}
         <hr />
+        <Link href="/">{t("Voir le site public ↗", "View public website ↗")}</Link>
         <button
           className="button outline small"
           onClick={async () => {
@@ -673,7 +677,7 @@ export default function Workspace({
               />
             )}
             {view === "admin/news" && (
-              <NewsEditor rows={data || []} act={act} l={l} />
+              <NewsEditor initialData={data || { articles: [], total: 0, page: 1 }} act={act} l={l} />
             )}
             {view === "admin/media" && (
               <MediaManager rows={data || []} act={act} l={l} />
@@ -1482,140 +1486,6 @@ function Members({
                 )}
               </>
             )}
-        </article>
-      ))}
-    </>
-  );
-}
-function NewsEditor({
-  rows,
-  act,
-  l,
-}: {
-  rows: Row[];
-  act: (b: Record<string, unknown>) => Promise<any>;
-  l: Locale;
-}) {
-  const [editing, setEditing] = useState<Row | null>(null);
-  return (
-    <>
-      <div className="card">
-        <h2 style={{ fontSize: "1.6rem", marginBottom: 25 }}>
-          {text(
-            l,
-            editing ? "Modifier l’actualité" : "Créer une actualité",
-            editing ? "Edit news" : "Create news",
-          )}
-        </h2>
-        <OperationForm
-          key={editing?.id || "new"}
-          op="save_news"
-          act={act}
-          l={l}
-          transform={(b) => ({ ...b, published: b.published === "on" })}
-          done={() => setEditing(null)}
-        >
-          {editing && <input type="hidden" name="id" value={editing.id} />}
-          <div className="form-grid">
-            <label>
-              Titre FR
-              <input
-                name="title_fr"
-                required
-                defaultValue={editing?.title_fr || ""}
-              />
-            </label>
-            <label>
-              Title EN
-              <input
-                name="title_en"
-                required
-                defaultValue={editing?.title_en || ""}
-              />
-            </label>
-          </div>
-          <label>
-            Contenu FR
-            <textarea
-              name="content_fr"
-              required
-              minLength={10}
-              defaultValue={editing?.content_fr || ""}
-            />
-          </label>
-          <label>
-            Content EN
-            <textarea
-              name="content_en"
-              required
-              minLength={10}
-              defaultValue={editing?.content_en || ""}
-            />
-          </label>
-          <label className="check">
-            <input
-              name="published"
-              type="checkbox"
-              defaultChecked={editing?.published || false}
-            />
-            <span>{text(l, "Publier sur le site", "Publish on website")}</span>
-          </label>
-        </OperationForm>
-        {editing && (
-          <button
-            className="button outline"
-            style={{ marginTop: 15 }}
-            onClick={() => setEditing(null)}
-          >
-            {text(l, "Annuler", "Cancel")}
-          </button>
-        )}
-      </div>
-      {rows.map((r) => (
-        <article className="card" key={r.id}>
-          <h3>{r.title_fr}</h3>
-          <p>{r.title_en}</p>
-          <span className="badge">
-            {r.published
-              ? text(l, "Publié", "Published")
-              : text(l, "Brouillon", "Draft")}
-          </span>
-          <div className="actions">
-            <button className="button outline" onClick={() => setEditing(r)}>
-              {text(l, "Modifier", "Edit")}
-            </button>
-            <button
-              className="button outline"
-              onClick={() =>
-                void act({
-                  op: "save_news",
-                  ...r,
-                  published: !r.published,
-                }).catch(() => {})
-              }
-            >
-              {r.published
-                ? text(l, "Dépublier", "Unpublish")
-                : text(l, "Publier", "Publish")}
-            </button>
-            <button
-              className="danger"
-              onClick={() => {
-                if (
-                  confirm(
-                    text(
-                      l,
-                      "Supprimer cette actualité ?",
-                      "Delete this news article?",
-                    ),
-                  )
-                )
-                  void act({ op: "delete_news", id: r.id }).catch(() => {});
-              }}
-            >
-              {text(l, "Supprimer", "Delete")}
-            </button>
-          </div>
         </article>
       ))}
     </>

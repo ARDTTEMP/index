@@ -13,6 +13,7 @@ export default function SiteFrame({ children, header, footer }: {
 }) {
   const path = usePathname().replace(/\/$/, "") || "/";
   if (authPaths.has(path)) return <main id="main" className="auth-screen">{children}</main>;
+  if (path === "/dashboard" || path.startsWith("/dashboard/") || path === "/admin" || path.startsWith("/admin/")) return <main id="main" className="member-screen">{children}</main>;
   return <>{header}<main id="main">{children}</main>{footer}</>;
 }
 

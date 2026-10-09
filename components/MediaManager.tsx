@@ -186,7 +186,7 @@ export default function MediaManager({
   );
 }
 
-async function optimizeImage(source: File): Promise<File> {
+export async function optimizeImage(source: File): Promise<File> {
   if (source.size > 30 * 1024 * 1024) throw new Error("Photo source trop lourde (30 Mo maximum).");
   const bitmap = await createImageBitmap(source);
   const scale = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height));
