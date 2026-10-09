@@ -22,7 +22,10 @@ export function emailTemplate(
     link = "/dashboard";
   switch (event) {
     case "admin_invitation":
-      subject = t("Votre invitation administrateur ARDTTEMP", "Your ARDTTEMP administrator invitation");
+      subject = t(
+        "Votre invitation administrateur ARDTTEMP",
+        "Your ARDTTEMP administrator invitation",
+      );
       message = t(
         `Bonjour ${p.admin_name}. Votre compte administrateur est prêt. Matricule : ${p.matricule}. Définissez votre mot de passe avec le lien ci-dessous.`,
         `Hello ${p.admin_name}. Your administrator account is ready. Membership ID: ${p.matricule}. Set your password using the link below.`,
@@ -112,6 +115,17 @@ export function emailTemplate(
         `Your reward (${p.type}) is approved. ${p.notes ?? ""}`,
       );
       link = "/dashboard/rewards";
+      break;
+    case "dues_confirmed":
+      subject = t(
+        "Votre cotisation ARDTTEMP est confirmée",
+        "Your ARDTTEMP membership payment is confirmed",
+      );
+      message = t(
+        `Votre cotisation de ${p.amount} FCFA pour la période ${p.period} est confirmée. Référence : ${p.reference}.`,
+        `Your membership payment of ${p.amount} XAF for ${p.period} is confirmed. Reference: ${p.reference}.`,
+      );
+      link = "/dashboard/dues";
       break;
     case "donation_received":
       subject = t(
