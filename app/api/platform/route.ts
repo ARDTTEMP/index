@@ -96,6 +96,8 @@ export async function GET(req: NextRequest) {
         data = await query("groups");
         break;
       case "rewards":
+        if (p.role === "super_admin")
+          throw new ForbiddenError("Super Admin does not receive rewards");
         data = await query("rewards", ["user_id", p.id]);
         break;
       case "messages": {
@@ -264,7 +266,9 @@ export async function GET(req: NextRequest) {
         check(settingError);
         let paymentsQuery = db
           .from("membership_payments")
-          .select("*,profiles!membership_payments_user_id_fkey(full_name,matricule)")
+          .select(
+            "*,profiles!membership_payments_user_id_fkey(full_name,matricule)",
+          )
           .order("created_at", { ascending: false });
         if (view === "dues") paymentsQuery = paymentsQuery.eq("user_id", p.id);
         const { data: payments, error: paymentError } = await paymentsQuery;
@@ -307,7 +311,7 @@ export async function POST(req: NextRequest) {
     )
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     const ct = req.headers.get("content-type") || "";
-    if (ct.includes("multipart/form-data")) return upload(req);
+    if (ct.includes("multipart/form-data")) return await upload(req);
     const b = await req.json();
     const op = z.string().parse(b.op);
     const db = await supabase();
@@ -973,8 +977,18 @@ async function upload(req: NextRequest) {
   const file = form.get("file");
   if (!(file instanceof File)) throw new Error("File required");
   const bucket = z
-    .enum(["activity-photos", "group-files", "profile-photos", "dues-receipts"])
+    .enum([
+      "activity-photos",
+      "group-files",
+      "profile-photos",
+      "dues-receipts",
+      "news-photos",
+      "gallery-media",
+    ])
     .parse(form.get("bucket"));
+  const publicPhoto = ["news-photos", "gallery-media"].includes(bucket);
+  if (publicPhoto && (p.status !== "approved" || !isAdmin(p.role)))
+    throw new ForbiddenError("Forbidden");
   const personalUpload =
     bucket === "profile-photos" || bucket === "dues-receipts";
   if (
@@ -986,7 +1000,13 @@ async function upload(req: NextRequest) {
   if (
     file.size === 0 ||
     file.size >
-      (bucket === "profile-photos" ? 1 : bucket === "group-files" ? 10 : 5) *
+      (bucket === "profile-photos"
+        ? 1
+        : publicPhoto
+          ? 4
+          : bucket === "group-files"
+            ? 10
+            : 5) *
         1024 *
         1024
   )
@@ -1003,7 +1023,10 @@ async function upload(req: NextRequest) {
     )
   )
     throw new Error("Unsupported file or file too large");
-  if (bucket === "profile-photos" && file.type !== "image/webp")
+  if (
+    (bucket === "profile-photos" || publicPhoto) &&
+    file.type !== "image/webp"
+  )
     throw new Error("Profile photo must be WebP");
   // Validate common magic bytes instead of trusting a supplied MIME type.
   if (
