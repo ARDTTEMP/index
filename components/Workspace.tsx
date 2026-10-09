@@ -23,8 +23,24 @@ import {
 import { api } from "./PublicForm";
 import MediaManager from "./MediaManager";
 import NewsEditor from "./NewsEditor";
+import { Avatar, AvatarUploader, DuesPanel } from "./PersonalFeatures";
+import { optimizeImage } from "./MediaManager";
 import { AuthTools } from "./SiteFrame";
-import { LayoutDashboard, UserRound, FileText, UsersRound, Award, ShieldCheck, ClipboardCheck, ImageIcon, HeartHandshake, Newspaper, LogOut, ArrowUpRight, Leaf } from "lucide-react";
+import {
+  LayoutDashboard,
+  UserRound,
+  FileText,
+  UsersRound,
+  Award,
+  ShieldCheck,
+  ClipboardCheck,
+  ImageIcon,
+  HeartHandshake,
+  Newspaper,
+  LogOut,
+  ArrowUpRight,
+  Leaf,
+} from "lucide-react";
 type Row = Record<string, any>;
 export default function Workspace({
   initialProfile,
@@ -74,10 +90,18 @@ export default function Workspace({
   );
   useEffect(() => {
     void load();
-    if (groupId) {
-      const timer = setInterval(() => void load(true), 5000);
-      return () => clearInterval(timer);
-    }
+    const refresh = () => {
+      if (document.visibilityState === "visible" && view !== "admin/news")
+        void load(true);
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    const timer = setInterval(refresh, groupId ? 5000 : 15000);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [load, groupId]);
   async function act(body: Record<string, unknown>) {
     setError("");
@@ -106,6 +130,8 @@ export default function Workspace({
   const labels: Record<string, string> = {
     overview: t("Mon engagement", "My contribution"),
     profile: t("Mon profil", "My profile"),
+    dues: t("Ma cotisation", "My membership fee"),
+    "admin/dues": t("Cotisations", "Membership payments"),
     reports: t("Mes rapports", "My reports"),
     "reports/new": t("Nouveau rapport", "New report"),
     groups: t("Mes groupes", "My groups"),
@@ -120,21 +146,53 @@ export default function Workspace({
     "admin/groups": t("Groupes de travail", "Working groups"),
     "admin/rewards": t("Gestion des récompenses", "Reward management"),
   };
-  const memberNav = ["overview", "profile", "reports", "groups", "rewards"];
+  const memberNav = [
+    "overview",
+    "profile",
+    "dues",
+    "reports",
+    "groups",
+    "rewards",
+  ];
   const navIcons: Record<string, typeof Leaf> = {
-    overview: LayoutDashboard, profile: UserRound, reports: FileText,
-    groups: UsersRound, rewards: Award, "admin/overview": ShieldCheck,
-    "admin/requests": ClipboardCheck, "admin/reports": FileText,
-    "admin/members": UsersRound, "admin/news": Newspaper,
-    "admin/media": ImageIcon, "admin/donations": HeartHandshake,
-    "admin/groups": UsersRound, "admin/rewards": Award,
+    overview: LayoutDashboard,
+    profile: UserRound,
+    reports: FileText,
+    groups: UsersRound,
+    rewards: Award,
+    dues: HeartHandshake,
+    "admin/dues": HeartHandshake,
+    "admin/overview": ShieldCheck,
+    "admin/requests": ClipboardCheck,
+    "admin/reports": FileText,
+    "admin/members": UsersRound,
+    "admin/news": Newspaper,
+    "admin/media": ImageIcon,
+    "admin/donations": HeartHandshake,
+    "admin/groups": UsersRound,
+    "admin/rewards": Award,
   };
   const roleWelcome = {
-    super_admin: t("Pilotez l’association et les responsabilités de chacun.", "Lead the association and manage responsibilities."),
-    admin: t("Accompagnez les adhésions et valorisez les actions de terrain.", "Review applications and recognise work on the ground."),
-    membre: t("Votre engagement fait avancer notre communauté.", "Your contribution moves our community forward."),
-    benevole: t("Votre temps et vos compétences font la différence.", "Your time and skills make a difference."),
-    volontaire: t("Passez à l’action, partagez vos missions et suivez votre impact.", "Take action, share your missions and track your impact."),
+    super_admin: t(
+      "Pilotez l’association et les responsabilités de chacun.",
+      "Lead the association and manage responsibilities.",
+    ),
+    admin: t(
+      "Accompagnez les adhésions et valorisez les actions de terrain.",
+      "Review applications and recognise work on the ground.",
+    ),
+    membre: t(
+      "Votre engagement fait avancer notre communauté.",
+      "Your contribution moves our community forward.",
+    ),
+    benevole: t(
+      "Votre temps et vos compétences font la différence.",
+      "Your time and skills make a difference.",
+    ),
+    volontaire: t(
+      "Passez à l’action, partagez vos missions et suivez votre impact.",
+      "Take action, share your missions and track your impact.",
+    ),
   };
   const adminNav = [
     "admin/overview",
@@ -144,6 +202,7 @@ export default function Workspace({
     "admin/news",
     "admin/media",
     "admin/donations",
+    "admin/dues",
     "admin/groups",
     "admin/rewards",
   ];
@@ -159,43 +218,59 @@ export default function Workspace({
   const eligible = reward !== null && profile.points >= reward * (used + 1);
   return (
     <div className="dashboard-shell">
-      <aside className="sidebar" aria-label={t("Navigation de votre espace", "Workspace navigation")}>
+      <aside
+        className="sidebar"
+        aria-label={t("Navigation de votre espace", "Workspace navigation")}
+      >
         <AuthTools locale={l} />
         <div className="sidebar-identity">
-          <span className="member-avatar" aria-hidden="true">{profile.full_name.trim().split(/\s+/).slice(0, 2).map(n => n[0]).join("").toUpperCase()}</span>
-          <div><b>{profile.full_name}</b><small>{roleLabels[l][profile.role]}</small></div>
+          <Avatar name={profile.full_name} url={profile.avatar_url} />
+          <div>
+            <b>{profile.full_name}</b>
+            <small>{roleLabels[l][profile.role]}</small>
+          </div>
         </div>
         <strong>{t("ESPACE MEMBRE", "MEMBER AREA")}</strong>
-        {memberNav.map((v) => { const Icon = navIcons[v]; return (
-          <Link
-            key={v}
-            href={v === "overview" ? "/dashboard" : "/dashboard/" + v}
-            className={view === v || view.startsWith(v + "/") ? "active" : ""}
-          >
-            <Icon size={18} aria-hidden="true" />{labels[v]}
-          </Link>
-        ); })}
+        {memberNav.map((v) => {
+          const Icon = navIcons[v];
+          return (
+            <Link
+              key={v}
+              href={v === "overview" ? "/dashboard" : "/dashboard/" + v}
+              className={view === v || view.startsWith(v + "/") ? "active" : ""}
+            >
+              <Icon size={18} aria-hidden="true" />
+              {labels[v]}
+            </Link>
+          );
+        })}
         {admin && (
           <>
             <hr />
             <strong>{t("ADMINISTRATION", "ADMINISTRATION")}</strong>
-            {adminNav.map((v) => { const Icon = navIcons[v]; return (
-              <Link
-                key={v}
-                href={
-                  v === "admin/overview"
-                    ? "/dashboard/admin"
-                    : "/dashboard/" + v
-                }
-                className={view === v ? "active" : ""}
-              >
-                <Icon size={18} aria-hidden="true" />{labels[v]}
-              </Link>
-            ); })}
+            {adminNav.map((v) => {
+              const Icon = navIcons[v];
+              return (
+                <Link
+                  key={v}
+                  href={
+                    v === "admin/overview"
+                      ? "/dashboard/admin"
+                      : "/dashboard/" + v
+                  }
+                  className={view === v ? "active" : ""}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                  {labels[v]}
+                </Link>
+              );
+            })}
           </>
         )}
         <hr />
-        <Link href="/">{t("Voir le site public ↗", "View public website ↗")}</Link>
+        <Link href="/">
+          {t("Voir le site public ↗", "View public website ↗")}
+        </Link>
         <button
           className="button outline small"
           onClick={async () => {
@@ -224,12 +299,28 @@ export default function Workspace({
         </div>
         {(view === "overview" || view === "admin/overview") && (
           <section className="member-welcome">
-            <div><p className="eyebrow">{t("ESPACE", "AREA")} {roleLabels[l][profile.role]}</p>
-              <h2>{t("Bonjour", "Hello")}, {profile.full_name.trim().split(/\s+/)[0]}.</h2>
+            <div>
+              <p className="eyebrow">
+                {t("ESPACE", "AREA")} {roleLabels[l][profile.role]}
+              </p>
+              <h2>
+                {t("Bonjour", "Hello")},{" "}
+                {profile.full_name.trim().split(/\s+/)[0]}.
+              </h2>
               <p>{roleWelcome[profile.role]}</p>
             </div>
-            <Leaf className="welcome-leaf" size={74} strokeWidth={1} aria-hidden="true" />
-            {admin && view === "overview" && <Link className="button light" href="/dashboard/admin">{t("Gérer l’association", "Manage the association")}<ArrowUpRight size={18} aria-hidden="true" /></Link>}
+            <Leaf
+              className="welcome-leaf"
+              size={74}
+              strokeWidth={1}
+              aria-hidden="true"
+            />
+            {admin && view === "overview" && (
+              <Link className="button light" href="/dashboard/admin">
+                {t("Gérer l’association", "Manage the association")}
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </Link>
+            )}
           </section>
         )}
         {!permitted && (
@@ -387,6 +478,22 @@ export default function Workspace({
               </>
             )}
             {view === "profile" && (
+              <AvatarUploader
+                profile={profile}
+                l={l}
+                refresh={() => load(true)}
+              />
+            )}
+            {(view === "dues" || view === "admin/dues") && data?.settings && (
+              <DuesPanel
+                data={data}
+                profile={profile}
+                admin={view === "admin/dues"}
+                l={l}
+                act={act}
+              />
+            )}
+            {view === "profile" && (
               <OperationForm op="profile" act={act} l={l}>
                 <div className="form-grid">
                   <label>
@@ -515,10 +622,20 @@ export default function Workspace({
                         }
                         key={m.id}
                       >
-                        <strong>
-                          {m.profiles?.full_name ||
-                            t("Participant", "Participant")}
-                        </strong>
+                        <div className="chat-author">
+                          <Avatar
+                            small
+                            name={
+                              m.profiles?.full_name ||
+                              t("Participant", "Participant")
+                            }
+                            url={m.profiles?.avatar_url}
+                          />
+                          <strong>
+                            {m.profiles?.full_name ||
+                              t("Participant", "Participant")}
+                          </strong>
+                        </div>
                         <p>{m.content}</p>
                         {m.attachment_url && (
                           <FileLink
@@ -625,8 +742,11 @@ export default function Workspace({
                   data.map((r: Row) => (
                     <article className="card" key={r.id}>
                       <h3>
-                        {roleLabels[l][r.requested_role as Profile["role"]]} ·{" "}
-                        {r.city}
+                        {r.full_name ||
+                          roleLabels[l][
+                            r.requested_role as Profile["role"]
+                          ]}{" "}
+                        · {roleLabels[l][r.requested_role as Profile["role"]]}
                       </h3>
                       <div className="meta">
                         <span>{r.phone}</span>
@@ -634,12 +754,21 @@ export default function Workspace({
                         <span>{date(r.created_at, l)}</span>
                         <span>{r.user_id}</span>
                       </div>
+                      {r.legacy && (
+                        <p className="notice">
+                          {t(
+                            "Compte créé avant la nouvelle procédure d’adhésion. L’approbation activera le profil, attribuera le matricule et les 50 points.",
+                            "Account created before the new membership flow. Approval activates the profile, assigns the membership ID and awards 50 points.",
+                          )}
+                        </p>
+                      )}
                       <p>{r.motivation}</p>
                       {status(r.status)}
                       {r.status === "pending" && (
                         <ReviewForm
                           id={r.id}
                           kind="membership"
+                          legacy={!!r.legacy}
                           act={act}
                           l={l}
                         />
@@ -677,7 +806,11 @@ export default function Workspace({
               />
             )}
             {view === "admin/news" && (
-              <NewsEditor initialData={data || { articles: [], total: 0, page: 1 }} act={act} l={l} />
+              <NewsEditor
+                initialData={data || { articles: [], total: 0, page: 1 }}
+                act={act}
+                l={l}
+              />
             )}
             {view === "admin/media" && (
               <MediaManager rows={data || []} act={act} l={l} />
@@ -915,11 +1048,13 @@ function OperationForm({
 function ReviewForm({
   id,
   kind,
+  legacy = false,
   act,
   l,
 }: {
   id: string;
   kind: "membership" | "report";
+  legacy?: boolean;
   act: (b: Record<string, unknown>) => Promise<any>;
   l: Locale;
 }) {
@@ -945,8 +1080,11 @@ function ReviewForm({
         setBusy(true);
         try {
           await act({
-            op:
-              decision === "reject"
+            op: legacy
+              ? decision === "reject"
+                ? "reject_existing_member"
+                : "approve_existing_member"
+              : decision === "reject"
                 ? "reject_" + kind
                 : kind === "report"
                   ? "validate_report"
@@ -1072,6 +1210,7 @@ function FileLink({
   );
 }
 async function upload(file: File, bucket: string, group?: string) {
+  if (file.type.startsWith("image/")) file = await optimizeImage(file);
   const fd = new FormData();
   fd.set("file", file);
   fd.set("bucket", bucket);
@@ -1430,8 +1569,21 @@ function Members({
           </div>
           {status(r.status)}
           {r.id !== profile.id &&
-            (profile.role === "super_admin" || !["admin", "super_admin"].includes(r.role)) && (
+            (profile.role === "super_admin" ||
+              !["admin", "super_admin"].includes(r.role)) && (
               <>
+                {r.status === "pending" && memberRoles.includes(r.role) && (
+                  <button
+                    onClick={() =>
+                      void act({
+                        op: "approve_existing_member",
+                        id: r.id,
+                      }).catch(() => {})
+                    }
+                  >
+                    {text(l, "Approuver l’adhésion", "Approve membership")}
+                  </button>
+                )}
                 <OperationForm op="manage_member" act={act} l={l}>
                   <input type="hidden" name="id" value={r.id} />
                   <div className="form-grid">
@@ -1451,13 +1603,15 @@ function Members({
                     <label>
                       {text(l, "Statut", "Status")}
                       <select name="status" defaultValue={r.status}>
-                        {["pending", "approved", "rejected", "suspended"].map(
-                          (s) => (
+                        {["pending", "approved", "rejected", "suspended"]
+                          .filter(
+                            (s) => r.status !== "pending" || s !== "approved",
+                          )
+                          .map((s) => (
                             <option key={s} value={s}>
                               {statusLabels[l][s as "pending"]}
                             </option>
-                          ),
-                        )}
+                          ))}
                       </select>
                     </label>
                   </div>
