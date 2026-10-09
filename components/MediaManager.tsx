@@ -393,7 +393,9 @@ function optimizeVideo(
     video.preload = "metadata";
     let audioContext: AudioContext | null = null;
     const cleanup = () => {
-      void audioContext?.close();
+      const contextToClose = audioContext;
+      audioContext = null;
+      void contextToClose?.close().catch(() => {});
       URL.revokeObjectURL(url);
       video.pause();
       video.src = "";
@@ -438,7 +440,17 @@ function optimizeVideo(
         const audioSource = audioContext.createMediaElementSource(video);
         const destination = audioContext.createMediaStreamDestination();
         audioSource.connect(destination);
-        await audioContext.resume();
+        let resumeTimer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            audioContext.resume(),
+            new Promise<never>((_, reject) => {
+              resumeTimer = setTimeout(() => reject(new Error("Audio preparation timed out")), 3000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(resumeTimer);
+        }
         if (audioContext.state !== "running")
           throw new Error("Audio encoding unavailable");
         for (const track of destination.stream.getAudioTracks())
