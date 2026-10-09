@@ -20,6 +20,7 @@ export default async function Dashboard({
     .single();
   if (!p) redirect("/login");
   const view = section.join("/") || "overview";
+  if (view === "rewards" && p.role === "super_admin") redirect("/dashboard");
   if (view.startsWith("admin") && (!isAdmin(p.role) || p.status !== "approved"))
     redirect("/dashboard");
   if (
