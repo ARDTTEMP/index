@@ -1601,3 +1601,16 @@ body { font-family: "Century Gothic", CenturyGothic, Arial, sans-serif; }
 .news-pagination { margin-top: 36px; justify-content: center; }
 @media (max-width: 980px) { .member-screen .sidebar { position: static; max-height: none; min-height: auto; } .sidebar .auth-tools { width: 100%; margin-bottom: 10px; justify-content: space-between; } }
 @media (max-width: 600px) { .news-admin-item { grid-template-columns: 1fr; } .news-admin-item > img { width: 100%; height: 180px; } }
+
+/* Personal photo, group identity and membership payments. */
+.member-avatar { overflow: hidden; flex-shrink: 0; }
+.member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-author { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.chat-avatar { width: 36px; height: 36px; font-size: .75rem; }
+.avatar-editor { display: grid; grid-template-columns: 140px minmax(0,1fr); gap: 28px; align-items: start; margin-bottom: 28px; }
+.avatar-preview .member-avatar { width: 120px; height: 120px; font-size: 2rem; }
+.dues-space { display: grid; gap: 30px; }
+.dues-summary h2 { color: var(--green); }
+.dues-payment { margin-top: 18px; }
+.payment-instructions { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .avatar-editor { grid-template-columns: 1fr; } .dues-payment .section-head { flex-direction: column; align-items: flex-start; gap: 12px; } }
