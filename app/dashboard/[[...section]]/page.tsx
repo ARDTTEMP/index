@@ -26,6 +26,7 @@ export default async function Dashboard({
     ![
       "overview",
       "profile",
+      "dues",
       "reports",
       "reports/new",
       "groups",
@@ -37,6 +38,7 @@ export default async function Dashboard({
       "admin/news",
       "admin/media",
       "admin/donations",
+      "admin/dues",
       "admin/groups",
       "admin/rewards",
     ].includes(view) &&
