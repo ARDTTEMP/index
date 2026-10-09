@@ -110,12 +110,41 @@ export async function GET(req: NextRequest) {
         check(ge);
         const { data: m, error } = await db
           .from("group_messages")
-          .select("*,profiles(full_name)")
+          .select("*,profiles(full_name,avatar_url)")
           .eq("group_id", id)
           .order("created_at", { ascending: false })
           .limit(100);
         check(error);
-        data = { group: g, messages: (m || []).reverse() };
+        const messages = (m || []).reverse();
+        const paths = [
+          ...new Set(
+            messages
+              .map((message) => message.profiles?.avatar_url)
+              .filter(
+                (path): path is string =>
+                  typeof path === "string" &&
+                  /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.webp$/.test(path),
+              ),
+          ),
+        ];
+        const signed = paths.length
+          ? await db.storage.from("profile-photos").createSignedUrls(paths, 900)
+          : null;
+        const urls = new Map(
+          signed?.data?.map((item) => [item.path, item.signedUrl]) || [],
+        );
+        data = {
+          group: g,
+          messages: messages.map((message) => ({
+            ...message,
+            profiles: message.profiles
+              ? {
+                  ...message.profiles,
+                  avatar_url: urls.get(message.profiles.avatar_url) || null,
+                }
+              : null,
+          })),
+        };
         break;
       }
       case "admin/overview": {
@@ -127,13 +156,17 @@ export async function GET(req: NextRequest) {
         ];
         const out = await Promise.all(
           tables.map(async (table) => {
-            const { count, error } = await db
-              .from(table)
+            let counter = db
+              .from(table === "membership_requests" ? "profiles" : table)
               .select("id", { head: true, count: "exact" })
-              .eq(
-                table === "profiles" ? "status" : "status",
-                table === "profiles" ? "approved" : "pending",
-              );
+              .eq("status", table === "profiles" ? "approved" : "pending");
+            if (table === "membership_requests")
+              counter = counter.in("role", [
+                "membre",
+                "benevole",
+                "volontaire",
+              ]);
+            const { count, error } = await counter;
             check(error);
             return count;
           }),
@@ -141,9 +174,37 @@ export async function GET(req: NextRequest) {
         data = Object.fromEntries(tables.map((t, i) => [t, out[i]]));
         break;
       }
-      case "admin/requests":
-        data = await query("membership_requests");
+      case "admin/requests": {
+        const requests = (await query("membership_requests")) || [];
+        const pending = (await query("profiles", ["status", "pending"])) || [];
+        const legacy = (await query("members")) || [];
+        const known = new Set(requests.map((row) => row.user_id));
+        data = [
+          ...requests,
+          ...pending
+            .filter((row) => !known.has(row.id) && !isAdmin(row.role))
+            .map((row) => ({
+              id: row.id,
+              user_id: row.id,
+              legacy: true,
+              full_name: row.full_name,
+              email: row.email,
+              status: "pending",
+              requested_role:
+                legacy.find((member) => member.user_id === row.id)
+                  ?.membership_type === "benevole"
+                  ? "benevole"
+                  : row.role,
+              city: row.city,
+              region: row.region,
+              phone: row.phone,
+              created_at: row.created_at,
+              motivation: "",
+              admin_comment: null,
+            })),
+        ];
         break;
+      }
       case "admin/reports":
         data = await query("reports");
         break;
@@ -151,9 +212,20 @@ export async function GET(req: NextRequest) {
         data = await query("profiles");
         break;
       case "admin/news": {
-        const page = Math.max(1, Math.min(1000000, Number(req.nextUrl.searchParams.get("page")) || 1));
-        const { data: articles, error, count } = await db.from("news").select("*", { count: "exact" })
-          .order("created_at", { ascending: false }).order("id").range((page - 1) * 20, page * 20 - 1);
+        const page = Math.max(
+          1,
+          Math.min(1000000, Number(req.nextUrl.searchParams.get("page")) || 1),
+        );
+        const {
+          data: articles,
+          error,
+          count,
+        } = await db
+          .from("news")
+          .select("*", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range((page - 1) * 20, page * 20 - 1);
         check(error);
         data = { articles, page, total: count || 0 };
         break;
@@ -183,14 +255,41 @@ export async function GET(req: NextRequest) {
           members: await query("profiles", ["status", "approved"]),
         };
         break;
+      case "dues":
+      case "admin/dues": {
+        const { data: settings, error: settingError } = await db
+          .from("dues_settings")
+          .select("*")
+          .single();
+        check(settingError);
+        let paymentsQuery = db
+          .from("membership_payments")
+          .select("*,profiles(full_name,matricule)")
+          .order("created_at", { ascending: false });
+        if (view === "dues") paymentsQuery = paymentsQuery.eq("user_id", p.id);
+        const { data: payments, error: paymentError } = await paymentsQuery;
+        check(paymentError);
+        data = { settings, payments: payments || [] };
+        break;
+      }
       case "admin/rewards":
         data = await query("rewards");
         break;
       default:
         throw new Error("Unknown view");
     }
+    let profilePhoto: string | null = null;
+    if (
+      p.avatar_url &&
+      /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.webp$/.test(p.avatar_url)
+    ) {
+      const { data: photo } = await db.storage
+        .from("profile-photos")
+        .createSignedUrl(p.avatar_url, 900);
+      profilePhoto = photo?.signedUrl || null;
+    }
     return NextResponse.json(
-      { profile: p, data },
+      { profile: { ...p, avatar_url: profilePhoto }, data },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (e) {
@@ -355,25 +454,34 @@ export async function POST(req: NextRequest) {
       if (p.status !== "approved" || p.role !== "super_admin")
         throw new ForbiddenError("Super Admin required");
       const d = adminInvite.parse(b);
-      const { data: invitation, error: inviteError } = await db.functions.invoke(
-        "ardttemp-admin-invite", {
+      const { data: invitation, error: inviteError } =
+        await db.functions.invoke("ardttemp-admin-invite", {
           body: { ...d, origin: req.nextUrl.origin },
-        },
-      );
+        });
       if (inviteError) {
-        const context = "context" in inviteError ? inviteError.context : undefined;
+        const context =
+          "context" in inviteError ? inviteError.context : undefined;
         const status = context instanceof Response ? context.status : 503;
         if (status === 401 || status === 403)
           throw new ForbiddenError("Super Admin required");
         if (status === 409) throw new ConflictError("Account already exists");
         throw new ConfigurationError("Supabase invitation unavailable");
       }
-      if (!invitation?.ok) throw new ConfigurationError("Invitation could not be saved");
-      result = { ok: true, email: d.email.toLowerCase(), message: "Admin invitation queued" };
+      if (!invitation?.ok)
+        throw new ConfigurationError("Invitation could not be saved");
+      result = {
+        ok: true,
+        email: d.email.toLowerCase(),
+        message: "Admin invitation queued",
+      };
     } else {
       const p = await actor(db);
       const adminOps = [
         "approve_membership",
+        "approve_existing_member",
+        "reject_existing_member",
+        "review_dues",
+        "configure_dues",
         "reject_membership",
         "validate_report",
         "reject_report",
@@ -382,32 +490,31 @@ export async function POST(req: NextRequest) {
         "save_news",
         "create_news_upload",
         "delete_news",
-      "create_group",
-      "add_member",
-      "review_reward",
-      "complete_donation",
-      "create_media_upload",
-      "publish_media",
-      "delete_media",
+        "create_group",
+        "add_member",
+        "review_reward",
+        "complete_donation",
+        "create_media_upload",
+        "publish_media",
+        "delete_media",
       ];
       if (adminOps.includes(op)) assertAdmin(p);
       if (op === "create_news_upload") {
         const path = `${p.id}/${crypto.randomUUID()}.webp`;
-        const { data, error } = await db.storage.from("news-photos").createSignedUploadUrl(path, { upsert: false });
+        const { data, error } = await db.storage
+          .from("news-photos")
+          .createSignedUploadUrl(path, { upsert: false });
         check(error);
         if (!data?.token) throw new Error("Could not create upload token");
         result = { path, token: data.token };
       } else if (op === "create_media_upload") {
         const d = z
           .object({
-            content_type: z.enum([
-              "image/webp",
-              "video/webm",
-              "video/mp4",
-            ]),
+            content_type: z.enum(["image/webp", "video/webm", "video/mp4"]),
           })
           .parse(b);
-        const ext = d.content_type === "image/webp" ? "webp" : d.content_type.slice(6);
+        const ext =
+          d.content_type === "image/webp" ? "webp" : d.content_type.slice(6);
         const path = `${p.id}/${crypto.randomUUID()}.${ext}`;
         const { data, error } = await db.storage
           .from("gallery-media")
@@ -505,6 +612,56 @@ export async function POST(req: NextRequest) {
           throw new ForbiddenError("Super Admin required");
       }
       switch (op) {
+        case "create_dues":
+          result = { id: await rpc("create_dues_payment", {}) };
+          break;
+        case "submit_dues":
+          await rpc("submit_dues_payment", {
+            p_id: uuid.parse(b.id),
+            p_method: z
+              .enum(["mobile_money", "bank_transfer", "cash", "online"])
+              .parse(b.method),
+            p_reference: z.string().trim().min(3).max(200).parse(b.reference),
+            p_receipt_path:
+              z.string().max(500).nullable().optional().parse(b.receipt_path) ||
+              null,
+          });
+          break;
+        case "review_dues":
+          await rpc("review_dues_payment", {
+            p_id: uuid.parse(b.id),
+            p_approved: z.boolean().parse(b.approved),
+            p_comment:
+              z.string().max(2000).nullable().optional().parse(b.comment) ||
+              null,
+          });
+          break;
+        case "configure_dues": {
+          if (p.role !== "super_admin")
+            throw new ForbiddenError("Super Admin required");
+          const settings = z
+            .object({
+              amount: z.coerce.number().int().min(100).max(100000000),
+              period: z.string().trim().min(1).max(64),
+              instructions_fr: z.string().trim().min(10).max(5000),
+              instructions_en: z.string().trim().min(10).max(5000),
+              checkout_url: z.union([
+                z.url().refine((value) => new URL(value).protocol === "https:"),
+                z.literal(""),
+              ]),
+            })
+            .parse(b);
+          const { error } = await db
+            .from("dues_settings")
+            .update({
+              ...settings,
+              checkout_url: settings.checkout_url || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", true);
+          check(error);
+          break;
+        }
         case "profile": {
           const d = z
             .object({
@@ -562,7 +719,11 @@ export async function POST(req: NextRequest) {
         case "signed_url": {
           const d = z
             .object({
-              bucket: z.enum(["activity-photos", "group-files"]),
+              bucket: z.enum([
+                "activity-photos",
+                "group-files",
+                "dues-receipts",
+              ]),
               path: z.string().max(500),
             })
             .parse(b);
@@ -573,12 +734,42 @@ export async function POST(req: NextRequest) {
           result = { url: data?.signedUrl };
           break;
         }
-        case "approve_membership":
-          await rpc("approve_membership", {
-            p_request_id: uuid.parse(b.id),
-            p_reviewer_id: p.id,
+        case "approve_existing_member":
+          await rpc("approve_existing_member", { p_user_id: uuid.parse(b.id) });
+          break;
+        case "reject_existing_member":
+          await rpc("reject_existing_member", {
+            p_user_id: uuid.parse(b.id),
+            p_comment: z.string().trim().min(3).max(2000).parse(b.comment),
           });
           break;
+        case "approve_membership": {
+          const requestId = uuid.parse(b.id);
+          await rpc("approve_membership", {
+            p_request_id: requestId,
+            p_reviewer_id: p.id,
+          });
+          const { data: membership, error: membershipError } = await db
+            .from("membership_requests")
+            .select("user_id,status")
+            .eq("id", requestId)
+            .single();
+          check(membershipError);
+          const { data: approved, error: approvedError } = await db
+            .from("profiles")
+            .select("status,matricule,points")
+            .eq("id", membership!.user_id)
+            .single();
+          check(approvedError);
+          if (
+            membership?.status !== "approved" ||
+            approved?.status !== "approved" ||
+            !approved.matricule
+          )
+            throw new Error("Membership approval did not complete");
+          result = { ok: true, member: approved };
+          break;
+        }
         case "reject_membership":
           await rpc("reject_membership", {
             p_request_id: uuid.parse(b.id),
@@ -650,13 +841,23 @@ export async function POST(req: NextRequest) {
             if (!new RegExp(`^${p.id}/[0-9a-f-]{36}\\.webp$`).test(cover_path))
               throw new ForbiddenError("Invalid cover photo path");
             const [folder, filename] = cover_path.split("/");
-            const { data: files, error: storageError } = await db.storage.from("news-photos").list(folder, { search: filename });
+            const { data: files, error: storageError } = await db.storage
+              .from("news-photos")
+              .list(folder, { search: filename });
             check(storageError);
-            if (!files?.some(file => file.name === filename)) throw new Error("Cover photo not uploaded");
-            values.cover_image = db.storage.from("news-photos").getPublicUrl(cover_path).data.publicUrl;
+            if (!files?.some((file) => file.name === filename))
+              throw new Error("Cover photo not uploaded");
+            values.cover_image = db.storage
+              .from("news-photos")
+              .getPublicUrl(cover_path).data.publicUrl;
           }
           const { error } = b.id
-            ? await db.from("news").update(values).eq("id", uuid.parse(b.id)).select("id").single()
+            ? await db
+                .from("news")
+                .update(values)
+                .eq("id", uuid.parse(b.id))
+                .select("id")
+                .single()
             : await db.from("news").insert({ ...values, author_id: p.id });
           check(error);
           break;
@@ -732,6 +933,7 @@ export async function POST(req: NextRequest) {
         case "complete_donation":
           await rpc("complete_donation", { p_id: uuid.parse(b.id) });
           break;
+        case "create_news_upload":
         case "create_media_upload":
         case "publish_media":
         case "delete_media":
@@ -755,36 +957,54 @@ export async function POST(req: NextRequest) {
         ? 403
         : e instanceof ConflictError
           ? 409
-          : e instanceof ConfigurationError || e instanceof RateLimitUnavailableError
+          : e instanceof ConfigurationError ||
+              e instanceof RateLimitUnavailableError
             ? 503
-            : e instanceof Error && e.message.startsWith("Too many requests") ? 429 : 400;
-    return NextResponse.json(
-      { error: message },
-      { status },
-    );
+            : e instanceof Error && e.message.startsWith("Too many requests")
+              ? 429
+              : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 async function upload(req: NextRequest) {
   const db = await supabase();
   const p = await actor(db);
-  if (p.status !== "approved") throw new Error("Approved account required");
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) throw new Error("File required");
   const bucket = z
-    .enum(["activity-photos", "group-files"])
+    .enum(["activity-photos", "group-files", "profile-photos", "dues-receipts"])
     .parse(form.get("bucket"));
+  const personalUpload =
+    bucket === "profile-photos" || bucket === "dues-receipts";
+  if (
+    personalUpload
+      ? !["pending", "approved"].includes(p.status)
+      : p.status !== "approved"
+  )
+    throw new ForbiddenError("Account not eligible for upload");
+  if (
+    file.size === 0 ||
+    file.size >
+      (bucket === "profile-photos" ? 1 : bucket === "group-files" ? 10 : 5) *
+        1024 *
+        1024
+  )
+    throw new Error("File too large or empty");
   const bytes = Buffer.from(await file.arrayBuffer());
   const image = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
   if (
     file.size > (bucket === "activity-photos" ? 5 : 10) * 1024 * 1024 ||
     !(
       image ||
-      (bucket === "group-files" &&
-        ["application/pdf", "text/plain"].includes(file.type))
+      (["group-files", "dues-receipts"].includes(bucket) &&
+        file.type === "application/pdf") ||
+      (bucket === "group-files" && file.type === "text/plain")
     )
   )
     throw new Error("Unsupported file or file too large");
+  if (bucket === "profile-photos" && file.type !== "image/webp")
+    throw new Error("Profile photo must be WebP");
   // Validate common magic bytes instead of trusting a supplied MIME type.
   if (
     (file.type === "image/jpeg" && !(bytes[0] === 255 && bytes[1] === 216)) ||
@@ -809,12 +1029,21 @@ async function upload(req: NextRequest) {
     "text/plain": "txt",
   }[file.type]!;
   const path =
-    bucket === "activity-photos"
+    bucket !== "group-files"
       ? `${p.id}/${crypto.randomUUID()}.${ext}`
       : `groups/${uuid.parse(form.get("group_id"))}/${p.id}/${crypto.randomUUID()}.${ext}`;
   const { error } = await db.storage
     .from(bucket)
     .upload(path, bytes, { contentType: file.type, upsert: false });
   check(error);
+  if (bucket === "profile-photos") {
+    const { error: profileError } = await db
+      .from("profiles")
+      .update({ avatar_url: path })
+      .eq("id", p.id)
+      .select("id")
+      .single();
+    check(profileError);
+  }
   return NextResponse.json({ path });
 }
