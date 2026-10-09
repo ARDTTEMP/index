@@ -1,0 +1,1542 @@
+{
+  "fr": {
+    "about": [
+      {
+        "tag": "p",
+        "text": "Accueil / Qui sommes-nous"
+      },
+      {
+        "tag": "h1",
+        "text": "Qui sommes-nous ?"
+      },
+      {
+        "tag": "p",
+        "text": "Une association camerounaise née de la conviction que la recherche, la solidarité et le développement durable doivent avancer ensemble."
+      },
+      {
+        "tag": "p",
+        "text": "Notre identité"
+      },
+      {
+        "tag": "h2",
+        "text": "L'Association pour la Recherche et le Développement des Techniques de Transformation Écologique des Matières Plastiques"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP s'associe aux communautés pour réduire l'impact des déchets plastiques sur l'environnement. Nous encourageons et vulgarisons les pratiques de transformation auprès des entrepreneurs, et nous accompagnons les communautés directement touchées par la pollution plastique."
+      },
+      {
+        "tag": "p",
+        "text": "Notre action ne s'arrête pas à l'environnement : nous apportons un soutien inconditionnel aux personnes âgées, aux femmes sous-scolarisées et aux enfants orphelins ou en situation de nécessité, convaincus que la transition écologique doit aussi être une transition sociale."
+      },
+      {
+        "tag": "p",
+        "text": "Notre histoire"
+      },
+      {
+        "tag": "h2",
+        "text": "Un grand chemin parcouru depuis 2024"
+      },
+      {
+        "tag": "p",
+        "text": "Créée en 2024, ARDTTEMP a rapidement construit un modèle d'action reliant transformation écologique et solidarité communautaire."
+      },
+      {
+        "tag": "h4",
+        "text": "Création de l'association"
+      },
+      {
+        "tag": "p",
+        "text": "Naissance d'ARDTTEMP à Yaoundé avec une double ambition : transformer les déchets plastiques et soutenir les communautés vulnérables."
+      },
+      {
+        "tag": "h4",
+        "text": "Lancement des collectes systématiques"
+      },
+      {
+        "tag": "p",
+        "text": "Mise en place d'opérations régulières de collecte des sacs et déchets plastiques usagés, favorisant leur nettoyage et leur remise en circulation."
+      },
+      {
+        "tag": "h4",
+        "text": "Déploiement du projet « Un Jeune un Diplôme »"
+      },
+      {
+        "tag": "p",
+        "text": "Accompagnement de jeunes filles mères célibataires vers le CEPE, le BEPC, le Probatoire et le Baccalauréat dans les régions du Centre, de l'Est et de l'Adamaoua."
+      },
+      {
+        "tag": "h4",
+        "text": "Structuration de la chaîne de valorisation"
+      },
+      {
+        "tag": "p",
+        "text": "Soutien renforcé aux acteurs locaux de la valorisation des déchets plastiques, et montée en puissance de la transformation du PET en flocons."
+      },
+      {
+        "tag": "h4",
+        "text": "Fabrication de pavés et carreaux écologiques"
+      },
+      {
+        "tag": "p",
+        "text": "La production de pavés et carreaux à base de déchets plastiques permet désormais à l'association de construire son propre budget de fonctionnement."
+      },
+      {
+        "tag": "p",
+        "text": "Notre raison d'être"
+      },
+      {
+        "tag": "h2",
+        "text": "Une mission à trois dimensions"
+      },
+      {
+        "tag": "h3",
+        "text": "Recherche & vulgarisation"
+      },
+      {
+        "tag": "p",
+        "text": "Étudier, perfectionner et diffuser des techniques accessibles de transformation écologique des matières plastiques auprès des entrepreneurs locaux."
+      },
+      {
+        "tag": "h3",
+        "text": "Objectifs nationaux"
+      },
+      {
+        "tag": "p",
+        "text": "Aligner nos actions sur les priorités environnementales et sociales portées par l'État camerounais en matière de gestion des déchets."
+      },
+      {
+        "tag": "h3",
+        "text": "Solidarité & développement"
+      },
+      {
+        "tag": "p",
+        "text": "Soutenir sans condition les personnes âgées, les femmes sous-scolarisées et les enfants orphelins ou nécessiteux touchés par la pollution plastique."
+      },
+      {
+        "tag": "p",
+        "text": "Organisation"
+      },
+      {
+        "tag": "h2",
+        "text": "Une gouvernance structurée autour du terrain"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP s'appuie sur trois cercles complémentaires pour mener ses actions au quotidien."
+      },
+      {
+        "tag": "h3",
+        "text": "Bureau exécutif"
+      },
+      {
+        "tag": "p",
+        "text": "Pilote la stratégie globale, les partenariats institutionnels et la gestion financière de l'association."
+      },
+      {
+        "tag": "h3",
+        "text": "Comité technique"
+      },
+      {
+        "tag": "p",
+        "text": "Encadre les opérations de collecte, de tri, de transformation du PET et de fabrication des pavés écologiques."
+      },
+      {
+        "tag": "h3",
+        "text": "Bénévoles & partenaires"
+      },
+      {
+        "tag": "p",
+        "text": "Relaient nos actions dans les quartiers, accompagnent les bénéficiaires et mobilisent les communautés locales."
+      },
+      {
+        "tag": "h2",
+        "text": "Envie de connaître nos actions concrètes ?"
+      },
+      {
+        "tag": "p",
+        "text": "Découvrez en détail nos programmes de collecte, de transformation et de soutien communautaire."
+      }
+    ],
+    "activities": [
+      {
+        "tag": "p",
+        "text": "Accueil / Activités"
+      },
+      {
+        "tag": "h1",
+        "text": "Nos activités"
+      },
+      {
+        "tag": "p",
+        "text": "De la collecte des déchets plastiques à l'insertion socio-éducative, chacune de nos actions s'inscrit dans une même chaîne de valorisation et de solidarité."
+      },
+      {
+        "tag": "h2",
+        "text": "Des opérations systématiques de collecte"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP organise des opérations systématiques de collecte des sacs et déchets plastiques usagés dans les quartiers et marchés. Ce travail de terrain s'accompagne d'actions de sensibilisation auprès des ménages sur les bons gestes de tri."
+      },
+      {
+        "tag": "p",
+        "text": "Une fois collectés, les sacs sont nettoyés puis remis en circulation, favorisant ainsi leur réutilisation plutôt que leur enfouissement ou leur incinération."
+      },
+      {
+        "tag": "h2",
+        "text": "Du PET aux flocons, du plastique aux pavés"
+      },
+      {
+        "tag": "p",
+        "text": "Au cœur de notre démarche se trouve la transformation des déchets en ressources. Les bouteilles en PET sont broyées en flocons, une matière première recherchée par l'industrie locale du recyclage."
+      },
+      {
+        "tag": "p",
+        "text": "D'autres déchets plastiques sont quant à eux transformés en pavés et carreaux écologiques, une technique qui permet à l'association de construire progressivement son budget de fonctionnement tout en offrant un débouché concret à la pollution plastique locale."
+      },
+      {
+        "tag": "h2",
+        "text": "Un Jeune un Diplôme"
+      },
+      {
+        "tag": "p",
+        "text": "Ce projet phare soutient les jeunes filles mères célibataires dans l'obtention de leurs diplômes : CEPE, BEPC, Probatoire et Baccalauréat. Il est déployé dans trois régions du Cameroun — le Centre, l'Est et l'Adamaoua — et combine accompagnement scolaire, appui matériel et suivi personnalisé."
+      },
+      {
+        "tag": "p",
+        "text": "En levant les freins financiers et sociaux à la scolarisation, ARDTTEMP donne à ces jeunes femmes les moyens de construire un avenir plus autonome pour elles-mêmes et leurs enfants."
+      },
+      {
+        "tag": "h2",
+        "text": "Un accompagnement inconditionnel"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP soutient inconditionnellement les personnes âgées, les femmes sous-scolarisées et les enfants orphelins ou en situation de nécessité. Cet accompagnement prend la forme d'un appui matériel, d'une orientation vers les structures sociales compétentes et d'un soutien moral durable."
+      },
+      {
+        "tag": "p",
+        "text": "Cette dimension sociale est indissociable de notre action environnementale : les communautés les plus exposées à la pollution plastique sont souvent celles qui disposent du moins de ressources pour s'en protéger."
+      },
+      {
+        "tag": "p",
+        "text": "Chaîne de valorisation"
+      },
+      {
+        "tag": "h2",
+        "text": "Un soutien massif aux acteurs du recyclage"
+      },
+      {
+        "tag": "p",
+        "text": "Au-delà de ses propres opérations, ARDTTEMP apporte un appui massif aux différents acteurs de la chaîne de valorisation des déchets plastiques : collecteurs indépendants, petites unités de transformation et artisans du pavé écologique."
+      },
+      {
+        "tag": "h4",
+        "text": "Collecte"
+      },
+      {
+        "tag": "p",
+        "text": "Ramassage organisé des déchets plastiques dans les quartiers et marchés."
+      },
+      {
+        "tag": "h4",
+        "text": "Tri & lavage"
+      },
+      {
+        "tag": "p",
+        "text": "Séparation par type de matière, nettoyage et préparation des déchets."
+      },
+      {
+        "tag": "h4",
+        "text": "Broyage en flocons"
+      },
+      {
+        "tag": "p",
+        "text": "Transformation du PET en flocons réutilisables par l'industrie locale."
+      },
+      {
+        "tag": "h4",
+        "text": "Fabrication"
+      },
+      {
+        "tag": "p",
+        "text": "Production de pavés et carreaux écologiques à partir des déchets traités."
+      },
+      {
+        "tag": "h4",
+        "text": "Impact local"
+      },
+      {
+        "tag": "p",
+        "text": "Les revenus générés financent les actions sociales et le fonctionnement de l'association."
+      },
+      {
+        "tag": "p",
+        "text": "Zones d'intervention"
+      },
+      {
+        "tag": "h2",
+        "text": "Présents dans trois régions du Cameroun"
+      },
+      {
+        "tag": "h3",
+        "text": "Région du Centre"
+      },
+      {
+        "tag": "p",
+        "text": "Siège de l'association à Yaoundé (Efoulan) — collecte, transformation et coordination générale."
+      },
+      {
+        "tag": "h3",
+        "text": "Région de l'Est"
+      },
+      {
+        "tag": "p",
+        "text": "Déploiement du projet « Un Jeune un Diplôme » et actions de sensibilisation communautaire."
+      },
+      {
+        "tag": "h3",
+        "text": "Région de l'Adamaoua"
+      },
+      {
+        "tag": "p",
+        "text": "Soutien scolaire et accompagnement des jeunes filles mères célibataires."
+      },
+      {
+        "tag": "h2",
+        "text": "Envie de soutenir nos activités ?"
+      },
+      {
+        "tag": "p",
+        "text": "Devenez bénévole, membre ou faites un don pour amplifier notre impact sur le terrain."
+      }
+    ],
+    "join": [
+      {
+        "tag": "p",
+        "text": "Accueil / Adhérer"
+      },
+      {
+        "tag": "h1",
+        "text": "Rejoignez le mouvement"
+      },
+      {
+        "tag": "p",
+        "text": "Que vous souhaitiez donner de votre temps, devenir membre actif ou soutenir nos projets sur le long terme, votre place est parmi nous."
+      },
+      {
+        "tag": "p",
+        "text": "Comment contribuer"
+      },
+      {
+        "tag": "h2",
+        "text": "Trois façons de nous rejoindre"
+      },
+      {
+        "tag": "h3",
+        "text": "Bénévole"
+      },
+      {
+        "tag": "p",
+        "text": "Donnez de votre temps lors des collectes, des actions de sensibilisation ou du soutien aux familles accompagnées par l'association."
+      },
+      {
+        "tag": "h3",
+        "text": "Membre actif"
+      },
+      {
+        "tag": "p",
+        "text": "Participez à la vie associative, aux décisions et aux activités de terrain en tant que membre statutaire d'ARDTTEMP."
+      },
+      {
+        "tag": "h3",
+        "text": "Membre bienfaiteur / Partenaire"
+      },
+      {
+        "tag": "p",
+        "text": "Soutenez financièrement ou matériellement nos programmes en tant qu'entreprise, institution ou particulier engagé."
+      },
+      {
+        "tag": "p",
+        "text": "Étapes d'adhésion"
+      },
+      {
+        "tag": "h2",
+        "text": "Comment ça marche"
+      },
+      {
+        "tag": "h3",
+        "text": "Remplissez le formulaire"
+      },
+      {
+        "tag": "p",
+        "text": "Indiquez vos coordonnées, votre région et la manière dont vous souhaitez contribuer."
+      },
+      {
+        "tag": "h3",
+        "text": "Échange avec notre équipe"
+      },
+      {
+        "tag": "p",
+        "text": "Un membre du bureau exécutif vous contacte pour mieux comprendre vos disponibilités et vos attentes."
+      },
+      {
+        "tag": "h3",
+        "text": "Intégration"
+      },
+      {
+        "tag": "p",
+        "text": "Vous rejoignez les équipes de terrain ou la vie associative selon le format d'adhésion choisi."
+      },
+      {
+        "tag": "p",
+        "text": "Formulaire"
+      },
+      {
+        "tag": "h2",
+        "text": "Votre demande d'adhésion"
+      },
+      {
+        "tag": "p",
+        "text": "Champs marqués d'un astérisque (*) obligatoires. Vos données ne sont utilisées que dans le cadre de votre adhésion à ARDTTEMP."
+      },
+      {
+        "tag": "p",
+        "text": "Questions fréquentes"
+      },
+      {
+        "tag": "h2",
+        "text": "Tout savoir sur l'adhésion"
+      },
+      {
+        "tag": "p",
+        "text": "Non, le bénévolat auprès d'ARDTTEMP ne nécessite aucune cotisation. Les modalités spécifiques aux membres actifs et bienfaiteurs vous seront présentées lors de votre entretien d'intégration."
+      },
+      {
+        "tag": "p",
+        "text": "Oui. Si vous résidez en dehors du Centre, de l'Est ou de l'Adamaoua, nous étudierons avec vous les façons de contribuer à distance ou de soutenir le développement de nouvelles antennes."
+      },
+      {
+        "tag": "p",
+        "text": "L'engagement est flexible : quelques heures ponctuelles lors des collectes ou un engagement plus régulier selon vos disponibilités, à définir ensemble."
+      },
+      {
+        "tag": "p",
+        "text": "Contactez-nous directement à partnership@ardttemp.org pour échanger sur les formats de partenariat possibles."
+      }
+    ],
+    "donate": [
+      {
+        "tag": "p",
+        "text": "Accueil / Faire un don"
+      },
+      {
+        "tag": "h1",
+        "text": "Faire un don"
+      },
+      {
+        "tag": "p",
+        "text": "Votre soutien finance directement nos opérations de collecte, notre atelier de transformation et nos programmes sociaux au Cameroun."
+      },
+      {
+        "tag": "p",
+        "text": "L'impact de votre don"
+      },
+      {
+        "tag": "h2",
+        "text": "Voici, à titre indicatif, ce que votre générosité peut rendre possible"
+      },
+      {
+        "tag": "p",
+        "text": "Permet l'achat de gants, sacs et équipements pour une opération de collecte communautaire."
+      },
+      {
+        "tag": "p",
+        "text": "Contribue aux fournitures scolaires d'une jeune fille soutenue par « Un Jeune un Diplôme »."
+      },
+      {
+        "tag": "p",
+        "text": "Finance une partie du fonctionnement de notre atelier de transformation en pavés écologiques."
+      },
+      {
+        "tag": "p",
+        "text": "Exemples illustratifs — chaque don, quel que soit son montant, contribue directement à nos actions."
+      },
+      {
+        "tag": "p",
+        "text": "Formulaire de don"
+      },
+      {
+        "tag": "h2",
+        "text": "Choisissez votre montant"
+      },
+      {
+        "tag": "p",
+        "text": "Don sécurisé. Vos informations ne sont utilisées que dans le cadre de votre contribution à ARDTTEMP."
+      },
+      {
+        "tag": "p",
+        "text": "Transparence"
+      },
+      {
+        "tag": "h2",
+        "text": "Où va votre argent ?"
+      },
+      {
+        "tag": "p",
+        "text": "Les dons reçus complètent les revenus générés par notre activité de transformation (flocons de PET, pavés et carreaux écologiques) pour financer nos trois grands postes d'action : les opérations de collecte et de sensibilisation, le fonctionnement de notre atelier de transformation, et nos programmes sociaux comme « Un Jeune un Diplôme »."
+      },
+      {
+        "tag": "p",
+        "text": "Questions fréquentes"
+      },
+      {
+        "tag": "h2",
+        "text": "À propos des dons"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP accepte les dons par Mobile Money (MTN MoMo, Orange Money), par virement bancaire ou en espèces au siège de l'association à Yaoundé."
+      },
+      {
+        "tag": "p",
+        "text": "Oui, sélectionnez « Don mensuel » dans le formulaire. Notre équipe vous contactera pour mettre en place le prélèvement récurrent adapté à votre moyen de paiement."
+      },
+      {
+        "tag": "p",
+        "text": "Tout à fait. Équipements de collecte, fournitures scolaires ou matériel de transformation sont les bienvenus. Contactez-nous à partnership@ardttemp.org pour en discuter."
+      }
+    ],
+    "contact": [
+      {
+        "tag": "p",
+        "text": "Accueil / Contact"
+      },
+      {
+        "tag": "h1",
+        "text": "Contactez-nous"
+      },
+      {
+        "tag": "p",
+        "text": "Une question, un projet de partenariat ou simplement envie d'échanger ? Notre équipe vous répond rapidement."
+      },
+      {
+        "tag": "p",
+        "text": "Nos coordonnées"
+      },
+      {
+        "tag": "h2",
+        "text": "Plusieurs façons de nous joindre"
+      },
+      {
+        "tag": "li",
+        "text": "Téléphone +237 655 50 85 11 +237 654 14 54 34"
+      },
+      {
+        "tag": "li",
+        "text": "E-mail partnership@ardttemp.org"
+      },
+      {
+        "tag": "li",
+        "text": "Adresse Rue 7.949, Efoulan, Yaoundé, Cameroun"
+      },
+      {
+        "tag": "li",
+        "text": "Site web www.ardttemp.org"
+      },
+      {
+        "tag": "li",
+        "text": "Horaires Lundi – Vendredi : 8h00 – 17h00"
+      },
+      {
+        "tag": "p",
+        "text": "Écrivez-nous"
+      },
+      {
+        "tag": "h2",
+        "text": "Envoyer un message"
+      },
+      {
+        "tag": "p",
+        "text": "Nous trouver"
+      },
+      {
+        "tag": "h2",
+        "text": "Rue 7.949, Efoulan, Yaoundé"
+      }
+    ],
+    "news": [
+      {
+        "tag": "p",
+        "text": "Accueil / Actualités"
+      },
+      {
+        "tag": "h1",
+        "text": "Actualités"
+      },
+      {
+        "tag": "p",
+        "text": "Suivez l'avancée de nos projets, nos partenariats et la vie de l'association sur le terrain."
+      },
+      {
+        "tag": "h2",
+        "text": "Grande collecte communautaire à Efoulan : plus de 500 kg de déchets ramassés"
+      },
+      {
+        "tag": "p",
+        "text": "12 mai 2026 · 5 min de lecture"
+      },
+      {
+        "tag": "p",
+        "text": "Une mobilisation exceptionnelle des habitants du quartier Efoulan a permis de collecter en une seule matinée plus de 500 kg de déchets plastiques, désormais en cours de tri pour transformation."
+      },
+      {
+        "tag": "p",
+        "text": "2 mai 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "Premiers pavés écologiques 100 % recyclés produits par ARDTTEMP"
+      },
+      {
+        "tag": "p",
+        "text": "Notre atelier de transformation a livré son premier lot de pavés fabriqués à partir de déchets plastiques collectés localement."
+      },
+      {
+        "tag": "p",
+        "text": "20 avril 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "Un Jeune un Diplôme : 30 nouvelles bénéficiaires accompagnées dans l'Adamaoua"
+      },
+      {
+        "tag": "p",
+        "text": "Le programme s'étend avec l'arrivée de 30 nouvelles jeunes filles mères célibataires accompagnées vers le BEPC et le Probatoire."
+      },
+      {
+        "tag": "p",
+        "text": "8 avril 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "ARDTTEMP signe un partenariat avec une coopérative de collecteurs à Bertoua"
+      },
+      {
+        "tag": "p",
+        "text": "Ce partenariat renforce la chaîne de valorisation des déchets plastiques dans la région de l'Est."
+      },
+      {
+        "tag": "p",
+        "text": "5 juin 2025"
+      },
+      {
+        "tag": "h3",
+        "text": "Journée mondiale de l'environnement : ARDTTEMP mobilise les écoles de Yaoundé"
+      },
+      {
+        "tag": "p",
+        "text": "Plusieurs établissements scolaires ont participé à des ateliers de sensibilisation au tri et au recyclage des plastiques."
+      },
+      {
+        "tag": "p",
+        "text": "15 mars 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "Recrutement de bénévoles pour la campagne de sensibilisation 2026"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP recherche des bénévoles motivés pour renforcer ses équipes de collecte et de sensibilisation."
+      },
+      {
+        "tag": "p",
+        "text": "28 février 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "De nouveaux points de collecte installés dans les marchés de Yaoundé"
+      },
+      {
+        "tag": "p",
+        "text": "Cinq nouveaux points de collecte facilitent désormais le dépôt de déchets plastiques par les commerçants et habitants."
+      },
+      {
+        "tag": "h2",
+        "text": "Ne manquez aucune actualité"
+      },
+      {
+        "tag": "p",
+        "text": "Inscrivez-vous à notre newsletter pour recevoir nos publications directement par e-mail."
+      }
+    ],
+    "news-article": [
+      {
+        "tag": "p",
+        "text": "Accueil / Actualités / Article"
+      },
+      {
+        "tag": "h1",
+        "text": "Grande collecte communautaire à Efoulan : plus de 500 kg de déchets ramassés"
+      },
+      {
+        "tag": "p",
+        "text": "📅 12 mai 2026 ✍️ Équipe ARDTTEMP ⏱ 5 min de lecture"
+      },
+      {
+        "tag": "p",
+        "text": "Le samedi 9 mai 2026, plus de 80 habitants du quartier Efoulan, à Yaoundé, ont répondu à l'appel d'ARDTTEMP pour participer à une vaste opération de collecte de déchets plastiques. En une seule matinée, plus de 500 kg de sacs et d'emballages plastiques ont été ramassés, triés et acheminés vers notre centre de tri."
+      },
+      {
+        "tag": "h2",
+        "text": "Une mobilisation portée par les habitants"
+      },
+      {
+        "tag": "p",
+        "text": "Organisée en partenariat avec les chefs de quartier et les associations de jeunesse locales, cette collecte s'inscrit dans la continuité des opérations systématiques menées par ARDTTEMP depuis sa création en 2024. Équipés de gants et de sacs de collecte, les volontaires ont ratissé les rues, les abords du marché et les berges du cours d'eau voisin, particulièrement touchés par l'accumulation de déchets plastiques."
+      },
+      {
+        "tag": "p",
+        "text": "« Chaque sac ramassé aujourd'hui est une ressource de demain : il deviendra flocon de PET ou pavé écologique. »"
+      },
+      {
+        "tag": "h2",
+        "text": "Et maintenant ?"
+      },
+      {
+        "tag": "p",
+        "text": "Les déchets collectés rejoignent notre chaîne de valorisation : tri par type de matière, lavage, puis transformation en flocons de PET ou en pavés et carreaux écologiques. Les revenus générés par cette transformation contribuent directement au financement de nos programmes sociaux, dont le projet « Un Jeune un Diplôme »."
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP remercie chaleureusement tous les habitants d'Efoulan pour leur engagement, et donne rendez-vous au prochain trimestre pour une nouvelle opération de collecte dans un autre quartier de Yaoundé."
+      },
+      {
+        "tag": "p",
+        "text": "À lire aussi"
+      },
+      {
+        "tag": "h2",
+        "text": "Articles similaires"
+      },
+      {
+        "tag": "p",
+        "text": "2 mai 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "Premiers pavés écologiques 100 % recyclés produits par ARDTTEMP"
+      },
+      {
+        "tag": "p",
+        "text": "28 février 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "De nouveaux points de collecte installés dans les marchés de Yaoundé"
+      },
+      {
+        "tag": "p",
+        "text": "8 avril 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "ARDTTEMP signe un partenariat avec une coopérative de collecteurs à Bertoua"
+      }
+    ]
+  },
+  "en": {
+    "about": [
+      {
+        "tag": "p",
+        "text": "Home / About Us"
+      },
+      {
+        "tag": "h1",
+        "text": "About Us"
+      },
+      {
+        "tag": "p",
+        "text": "A Cameroonian association born from a simple conviction: research and solidarity can turn an environmental problem into a social opportunity."
+      },
+      {
+        "tag": "p",
+        "text": "Overview"
+      },
+      {
+        "tag": "h2",
+        "text": "Association for Research and Development of Ecological Plastic Waste Transformation Techniques"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP partners with communities to reduce the impact of plastic waste on the environment. We promote and popularize transformation practices among entrepreneurs, and we support communities directly affected by plastic pollution."
+      },
+      {
+        "tag": "p",
+        "text": "Our approach is rooted in applied research: every transformation technique we promote — PET flakes, eco-friendly paving stones and tiles — has been designed to be locally reproducible and to generate sustainable income."
+      },
+      {
+        "tag": "p",
+        "text": "Our history"
+      },
+      {
+        "tag": "h2",
+        "text": "A long way traveled since 2024"
+      },
+      {
+        "tag": "p",
+        "text": "Founded in 2024, ARDTTEMP has since come a long way, gradually structuring its actions around collection, transformation and social support."
+      },
+      {
+        "tag": "h4",
+        "text": "Founding of the association"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP was born in Yaoundé, built around a mission of research and ecological transformation of plastic materials."
+      },
+      {
+        "tag": "h4",
+        "text": "Launch of systematic collection drives"
+      },
+      {
+        "tag": "p",
+        "text": "Regular collection operations for used plastic bags began, enabling them to be cleaned and put back into circulation."
+      },
+      {
+        "tag": "h4",
+        "text": "Rollout of \"One Youth, One Diploma\""
+      },
+      {
+        "tag": "p",
+        "text": "Support for young single mothers toward the CEPE, BEPC, Probatoire and Baccalauréat in the Centre, East and Adamawa regions."
+      },
+      {
+        "tag": "h4",
+        "text": "Structuring the value chain"
+      },
+      {
+        "tag": "p",
+        "text": "Strengthened support for actors in the plastic waste valorization chain, along with growth in PET flake and eco-paving production."
+      },
+      {
+        "tag": "p",
+        "text": "Mission & objectives"
+      },
+      {
+        "tag": "h2",
+        "text": "Why we act"
+      },
+      {
+        "tag": "h3",
+        "text": "Reduce plastic pollution"
+      },
+      {
+        "tag": "p",
+        "text": "Sustainably reduce the impact of plastic waste on the environment and the health of Cameroonian communities."
+      },
+      {
+        "tag": "h3",
+        "text": "Popularize transformation"
+      },
+      {
+        "tag": "p",
+        "text": "Train and support local entrepreneurs in adopting ecological plastic transformation techniques."
+      },
+      {
+        "tag": "h3",
+        "text": "Support the most vulnerable"
+      },
+      {
+        "tag": "p",
+        "text": "Provide unconditional support to elderly people, under-schooled women, and orphaned or needy children."
+      },
+      {
+        "tag": "p",
+        "text": "\"Remembering through research, alignment with national objectives, solidarity and development: these are the four compasses of our commitment.\""
+      },
+      {
+        "tag": "p",
+        "text": "Our values"
+      },
+      {
+        "tag": "h2",
+        "text": "Four principles guiding our actions"
+      },
+      {
+        "tag": "h3",
+        "text": "Research"
+      },
+      {
+        "tag": "p",
+        "text": "Solutions grounded in local experimentation and technical innovation."
+      },
+      {
+        "tag": "h3",
+        "text": "Solidarity"
+      },
+      {
+        "tag": "p",
+        "text": "Unconditional support for the vulnerable members of our communities."
+      },
+      {
+        "tag": "h3",
+        "text": "Sustainable development"
+      },
+      {
+        "tag": "p",
+        "text": "Responsible economic activities that fund our social impact."
+      },
+      {
+        "tag": "h3",
+        "text": "National engagement"
+      },
+      {
+        "tag": "p",
+        "text": "Action aligned with the development objectives set by the Cameroonian state."
+      },
+      {
+        "tag": "p",
+        "text": "Governance"
+      },
+      {
+        "tag": "h2",
+        "text": "A team committed on the ground"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP relies on an executive board and field teams spread across the Centre, East and Adamawa regions. The portraits below will be completed with the actual members of your board."
+      },
+      {
+        "tag": "p",
+        "text": "Presidency"
+      },
+      {
+        "tag": "h3",
+        "text": "Executive board"
+      },
+      {
+        "tag": "p",
+        "text": "Coordination"
+      },
+      {
+        "tag": "h3",
+        "text": "Social programs"
+      },
+      {
+        "tag": "p",
+        "text": "Technical"
+      },
+      {
+        "tag": "h3",
+        "text": "Transformation & production"
+      },
+      {
+        "tag": "p",
+        "text": "Partnerships"
+      },
+      {
+        "tag": "h3",
+        "text": "External relations"
+      },
+      {
+        "tag": "h2",
+        "text": "Want to contribute to our mission?"
+      },
+      {
+        "tag": "p",
+        "text": "Discover how to become a member, volunteer or partner of ARDTTEMP."
+      }
+    ],
+    "activities": [
+      {
+        "tag": "p",
+        "text": "Home / Activities"
+      },
+      {
+        "tag": "h1",
+        "text": "Our Activities"
+      },
+      {
+        "tag": "p",
+        "text": "From plastic waste collection to socio-educational inclusion, each of our actions is part of the same value and solidarity chain."
+      },
+      {
+        "tag": "h2",
+        "text": "Systematic collection operations"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP organizes systematic collection operations for used plastic bags and waste in neighborhoods and markets. This fieldwork is paired with awareness campaigns for households on proper sorting practices."
+      },
+      {
+        "tag": "p",
+        "text": "Once collected, bags are cleaned and put back into circulation, favoring reuse over landfilling or incineration."
+      },
+      {
+        "tag": "h2",
+        "text": "From PET to flakes, from plastic to paving stones"
+      },
+      {
+        "tag": "p",
+        "text": "At the heart of our approach is turning waste into resources. PET bottles are crushed into flakes, a raw material in demand by the local recycling industry."
+      },
+      {
+        "tag": "p",
+        "text": "Other plastic waste is transformed into eco-friendly paving stones and tiles — a technique that allows the association to gradually build its operating budget while offering a concrete outlet for local plastic pollution."
+      },
+      {
+        "tag": "h2",
+        "text": "One Youth, One Diploma"
+      },
+      {
+        "tag": "p",
+        "text": "This flagship project supports young single mothers in earning their diplomas: CEPE, BEPC, Probatoire and Baccalauréat. It is deployed across three regions of Cameroon — Centre, East and Adamawa — and combines academic support, material assistance and personalized follow-up."
+      },
+      {
+        "tag": "p",
+        "text": "By removing financial and social barriers to schooling, ARDTTEMP gives these young women the means to build a more independent future for themselves and their children."
+      },
+      {
+        "tag": "h2",
+        "text": "Unconditional support"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP unconditionally supports elderly people, under-schooled women, and orphaned or needy children. This support takes the form of material assistance, referrals to relevant social structures, and lasting moral support."
+      },
+      {
+        "tag": "p",
+        "text": "This social dimension is inseparable from our environmental action: the communities most exposed to plastic pollution are often those with the fewest resources to protect themselves from it."
+      },
+      {
+        "tag": "p",
+        "text": "Value chain"
+      },
+      {
+        "tag": "h2",
+        "text": "Strong support for recycling actors"
+      },
+      {
+        "tag": "p",
+        "text": "Beyond its own operations, ARDTTEMP provides substantial support to the various actors in the plastic waste valorization chain: independent collectors, small transformation units, and eco-paving artisans."
+      },
+      {
+        "tag": "h4",
+        "text": "Collection"
+      },
+      {
+        "tag": "p",
+        "text": "Organized pickup of plastic waste in neighborhoods and markets."
+      },
+      {
+        "tag": "h4",
+        "text": "Sorting & washing"
+      },
+      {
+        "tag": "p",
+        "text": "Separation by material type, cleaning and preparation of the waste."
+      },
+      {
+        "tag": "h4",
+        "text": "Flaking"
+      },
+      {
+        "tag": "p",
+        "text": "Transformation of PET into flakes reusable by local industry."
+      },
+      {
+        "tag": "h4",
+        "text": "Manufacturing"
+      },
+      {
+        "tag": "p",
+        "text": "Production of eco-friendly paving stones and tiles from treated waste."
+      },
+      {
+        "tag": "h4",
+        "text": "Local impact"
+      },
+      {
+        "tag": "p",
+        "text": "Revenue generated funds our social programs and the association's operations."
+      },
+      {
+        "tag": "p",
+        "text": "Areas of operation"
+      },
+      {
+        "tag": "h2",
+        "text": "Present in three regions of Cameroon"
+      },
+      {
+        "tag": "h3",
+        "text": "Centre Region"
+      },
+      {
+        "tag": "p",
+        "text": "Association headquarters in Yaoundé (Efoulan) — collection, transformation and overall coordination."
+      },
+      {
+        "tag": "h3",
+        "text": "East Region"
+      },
+      {
+        "tag": "p",
+        "text": "Rollout of the \"One Youth, One Diploma\" project and community awareness campaigns."
+      },
+      {
+        "tag": "h3",
+        "text": "Adamawa Region"
+      },
+      {
+        "tag": "p",
+        "text": "Academic support and accompaniment for young single mothers."
+      },
+      {
+        "tag": "h2",
+        "text": "Want to support our activities?"
+      },
+      {
+        "tag": "p",
+        "text": "Become a volunteer, a member, or make a donation to amplify our impact on the ground."
+      }
+    ],
+    "join": [
+      {
+        "tag": "p",
+        "text": "Home / Join us"
+      },
+      {
+        "tag": "h1",
+        "text": "Join the movement"
+      },
+      {
+        "tag": "p",
+        "text": "Whether you want to give your time, become an active member or support our projects long term, there is a place for you with us."
+      },
+      {
+        "tag": "p",
+        "text": "How to contribute"
+      },
+      {
+        "tag": "h2",
+        "text": "Three ways to join us"
+      },
+      {
+        "tag": "h3",
+        "text": "Volunteer"
+      },
+      {
+        "tag": "p",
+        "text": "Give your time during collection drives, awareness campaigns or support for the families ARDTTEMP accompanies."
+      },
+      {
+        "tag": "h3",
+        "text": "Active member"
+      },
+      {
+        "tag": "p",
+        "text": "Take part in the life of the association, its decisions and field activities as a statutory member of ARDTTEMP."
+      },
+      {
+        "tag": "h3",
+        "text": "Benefactor / Partner"
+      },
+      {
+        "tag": "p",
+        "text": "Support our programmes financially or in kind as a company, institution or committed individual."
+      },
+      {
+        "tag": "p",
+        "text": "How it works"
+      },
+      {
+        "tag": "h2",
+        "text": "Three simple steps"
+      },
+      {
+        "tag": "h3",
+        "text": "Fill in the form"
+      },
+      {
+        "tag": "p",
+        "text": "Share your details, region and how you would like to contribute."
+      },
+      {
+        "tag": "h3",
+        "text": "Chat with our team"
+      },
+      {
+        "tag": "p",
+        "text": "A member of the executive board will contact you to better understand your availability and expectations."
+      },
+      {
+        "tag": "h3",
+        "text": "Get started"
+      },
+      {
+        "tag": "p",
+        "text": "You join the field teams or associative life according to your chosen membership format."
+      },
+      {
+        "tag": "p",
+        "text": "Application form"
+      },
+      {
+        "tag": "h2",
+        "text": "Your membership application"
+      },
+      {
+        "tag": "p",
+        "text": "Fields marked with an asterisk (*) are required. Your data is used solely in the context of your ARDTTEMP membership."
+      },
+      {
+        "tag": "p",
+        "text": "FAQ"
+      },
+      {
+        "tag": "h2",
+        "text": "Everything you need to know about membership"
+      },
+      {
+        "tag": "p",
+        "text": "No, volunteering with ARDTTEMP requires no fee. Specific terms for active and benefactor members will be shared during your onboarding meeting."
+      },
+      {
+        "tag": "p",
+        "text": "Yes. If you live outside the Centre, East or Adamawa regions, we will explore remote contribution options or ways to help expand our reach together."
+      },
+      {
+        "tag": "p",
+        "text": "Commitment is flexible: a few hours during collection drives or a more regular involvement, to be defined together based on your availability."
+      },
+      {
+        "tag": "p",
+        "text": "Contact us directly at partnership@ardttemp.org to discuss possible partnership formats."
+      }
+    ],
+    "donate": [
+      {
+        "tag": "p",
+        "text": "Home / Donate"
+      },
+      {
+        "tag": "h1",
+        "text": "Make a donation"
+      },
+      {
+        "tag": "p",
+        "text": "Your support directly funds our collection drives, transformation workshop and social programmes in Cameroon."
+      },
+      {
+        "tag": "p",
+        "text": "The impact of your donation"
+      },
+      {
+        "tag": "h2",
+        "text": "Here is what your generosity can make possible"
+      },
+      {
+        "tag": "p",
+        "text": "Covers gloves, bags and equipment for one community collection drive."
+      },
+      {
+        "tag": "p",
+        "text": "Contributes to school supplies for one young woman supported by \"One Youth, One Diploma\"."
+      },
+      {
+        "tag": "p",
+        "text": "Helps fund part of our eco-friendly paving stone transformation workshop."
+      },
+      {
+        "tag": "p",
+        "text": "These are illustrative examples — every donation, no matter the amount, directly supports our work."
+      },
+      {
+        "tag": "p",
+        "text": "Donation form"
+      },
+      {
+        "tag": "h2",
+        "text": "Choose your amount"
+      },
+      {
+        "tag": "p",
+        "text": "Secure donation. Your information is used solely in the context of your contribution to ARDTTEMP."
+      },
+      {
+        "tag": "p",
+        "text": "Transparency"
+      },
+      {
+        "tag": "h2",
+        "text": "Where does your money go?"
+      },
+      {
+        "tag": "p",
+        "text": "Donations complement the revenue generated by our transformation activity (PET flakes, paving stones and tiles) to fund three main areas: collection and awareness operations, our transformation workshop, and our social programmes such as \"One Youth, One Diploma\"."
+      },
+      {
+        "tag": "p",
+        "text": "FAQ"
+      },
+      {
+        "tag": "h2",
+        "text": "Questions about donating"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP accepts donations via Mobile Money (MTN MoMo, Orange Money), bank transfer or cash at our Yaoundé headquarters."
+      },
+      {
+        "tag": "p",
+        "text": "Yes, select \"Monthly gift\" in the form. Our team will contact you to set up the recurring payment that suits your preferred method."
+      },
+      {
+        "tag": "p",
+        "text": "Absolutely. Collection equipment, school supplies or transformation machinery are all welcome. Contact us at partnership@ardttemp.org to discuss."
+      }
+    ],
+    "contact": [
+      {
+        "tag": "p",
+        "text": "Home / Contact"
+      },
+      {
+        "tag": "h1",
+        "text": "Contact us"
+      },
+      {
+        "tag": "p",
+        "text": "A question, a partnership project or simply want to chat? Our team will get back to you promptly."
+      },
+      {
+        "tag": "p",
+        "text": "Our details"
+      },
+      {
+        "tag": "h2",
+        "text": "Several ways to reach us"
+      },
+      {
+        "tag": "li",
+        "text": "Phone +237 655 50 85 11 +237 654 14 54 34"
+      },
+      {
+        "tag": "li",
+        "text": "Email partnership@ardttemp.org"
+      },
+      {
+        "tag": "li",
+        "text": "Address Rue 7.949, Efoulan, Yaoundé, Cameroon"
+      },
+      {
+        "tag": "li",
+        "text": "Website www.ardttemp.org"
+      },
+      {
+        "tag": "li",
+        "text": "Opening hours Monday – Friday: 8:00 am – 5:00 pm"
+      },
+      {
+        "tag": "p",
+        "text": "Write to us"
+      },
+      {
+        "tag": "h2",
+        "text": "Send a message"
+      },
+      {
+        "tag": "p",
+        "text": "Find us"
+      },
+      {
+        "tag": "h2",
+        "text": "Rue 7.949, Efoulan, Yaoundé"
+      }
+    ],
+    "news": [
+      {
+        "tag": "p",
+        "text": "Home / News"
+      },
+      {
+        "tag": "h1",
+        "text": "News"
+      },
+      {
+        "tag": "p",
+        "text": "Follow the progress of our projects, our partnerships and the life of the association on the ground."
+      },
+      {
+        "tag": "h2",
+        "text": "Large community collection drive in Efoulan: over 500 kg of waste collected"
+      },
+      {
+        "tag": "p",
+        "text": "May 12, 2026 · 5 min read"
+      },
+      {
+        "tag": "p",
+        "text": "An exceptional mobilization of residents in the Efoulan neighborhood made it possible to collect more than 500 kg of plastic waste in a single morning, now being sorted for transformation."
+      },
+      {
+        "tag": "p",
+        "text": "May 2, 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "First 100% recycled eco-friendly paving stones produced by ARDTTEMP"
+      },
+      {
+        "tag": "p",
+        "text": "Our transformation workshop delivered its first batch of paving stones made from locally collected plastic waste."
+      },
+      {
+        "tag": "p",
+        "text": "April 20, 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "One Youth, One Diploma: 30 new beneficiaries supported in Adamawa"
+      },
+      {
+        "tag": "p",
+        "text": "The program is expanding with 30 new young single mothers supported toward the BEPC and Probatoire."
+      },
+      {
+        "tag": "p",
+        "text": "April 8, 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "ARDTTEMP signs a partnership with a collectors' cooperative in Bertoua"
+      },
+      {
+        "tag": "p",
+        "text": "This partnership strengthens the plastic waste valorization chain in the East region."
+      },
+      {
+        "tag": "p",
+        "text": "June 5, 2025"
+      },
+      {
+        "tag": "h3",
+        "text": "World Environment Day: ARDTTEMP mobilizes Yaoundé schools"
+      },
+      {
+        "tag": "p",
+        "text": "Several schools took part in workshops raising awareness about plastic sorting and recycling."
+      },
+      {
+        "tag": "p",
+        "text": "March 15, 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "Volunteer recruitment for the 2026 awareness campaign"
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP is looking for motivated volunteers to strengthen its collection and awareness teams."
+      },
+      {
+        "tag": "p",
+        "text": "February 28, 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "New collection points installed in Yaoundé markets"
+      },
+      {
+        "tag": "p",
+        "text": "Five new collection points now make it easier for traders and residents to drop off plastic waste."
+      },
+      {
+        "tag": "h2",
+        "text": "Never miss an update"
+      },
+      {
+        "tag": "p",
+        "text": "Subscribe to our newsletter to receive our publications directly by email."
+      }
+    ],
+    "news-article": [
+      {
+        "tag": "p",
+        "text": "Home / News / Article"
+      },
+      {
+        "tag": "h1",
+        "text": "Large community clean-up in Efoulan: over 500 kg of waste collected"
+      },
+      {
+        "tag": "p",
+        "text": "📅 12 May 2026 ✍️ ARDTTEMP Team ⏱ 5 min read"
+      },
+      {
+        "tag": "p",
+        "text": "On Saturday 9 May 2026, more than 80 residents of the Efoulan neighbourhood in Yaoundé answered ARDTTEMP's call to take part in a large plastic waste collection drive. In a single morning, over 500 kg of bags and plastic packaging were collected, sorted and transported to our sorting centre."
+      },
+      {
+        "tag": "h2",
+        "text": "A mobilisation driven by the community"
+      },
+      {
+        "tag": "p",
+        "text": "Organised in partnership with local neighbourhood leaders and youth associations, this clean-up continues the systematic operations ARDTTEMP has been running since its founding in 2024. Equipped with gloves and collection bags, volunteers covered streets, market areas and the banks of a nearby stream — all heavily affected by plastic waste accumulation."
+      },
+      {
+        "tag": "p",
+        "text": "\"Every bag picked up today is a resource for tomorrow: it will become a PET flake or an eco-friendly paving stone.\""
+      },
+      {
+        "tag": "h2",
+        "text": "What happens next?"
+      },
+      {
+        "tag": "p",
+        "text": "The collected waste now enters our valorisation chain: sorting by material type, washing, then transformation into PET flakes or eco-friendly paving stones and tiles. The revenue generated directly funds our social programmes, including the \"One Youth, One Diploma\" project."
+      },
+      {
+        "tag": "p",
+        "text": "ARDTTEMP warmly thanks all Efoulan residents for their commitment, and looks forward to seeing everyone at the next quarterly collection drive in another Yaoundé neighbourhood."
+      },
+      {
+        "tag": "p",
+        "text": "Read also"
+      },
+      {
+        "tag": "h2",
+        "text": "Related articles"
+      },
+      {
+        "tag": "p",
+        "text": "2 May 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "First 100% recycled eco-friendly paving stones produced by ARDTTEMP"
+      },
+      {
+        "tag": "p",
+        "text": "28 February 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "New collection points installed in Yaoundé's markets"
+      },
+      {
+        "tag": "p",
+        "text": "8 April 2026"
+      },
+      {
+        "tag": "h3",
+        "text": "ARDTTEMP signs partnership with a collectors' cooperative in Bertoua"
+      }
+    ]
+  }
+}
