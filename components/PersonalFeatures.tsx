@@ -22,16 +22,18 @@ export function Avatar({
   url?: string | null;
   small?: boolean;
 }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   return (
     <span className={"member-avatar" + (small ? " chat-avatar" : "")}>
-      {url && /^(https:|blob:)/.test(url) ? (
+      {url && url !== failedUrl && /^(https:|blob:)/.test(url) ? (
         <img
           src={url}
           alt=""
           width={small ? 40 : 80}
           height={small ? 40 : 80}
           decoding="async"
-          loading="lazy"
+          loading={small ? "lazy" : "eager"}
+          onError={() => setFailedUrl(url || null)}
         />
       ) : (
         name
@@ -57,7 +59,8 @@ export function AvatarUploader({
   const [file, setFile] = useState<File | null>(null),
     [preview, setPreview] = useState(""),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [saved, setSaved] = useState(false);
   const t = (fr: string, en: string) => text(l, fr, en);
   useEffect(() => {
     if (!file) {
@@ -89,12 +92,14 @@ export function AvatarUploader({
             if (!file) return;
             setBusy(true);
             setError("");
+            setSaved(false);
             try {
               const optimized = await optimizeImage(file, 256, 0.72);
               await uploadPersonal(optimized, "profile-photos");
               setFile(null);
               form.reset();
               await refresh();
+              setSaved(true);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Error");
             } finally {
@@ -106,7 +111,7 @@ export function AvatarUploader({
             {t("Choisir une photo", "Choose a photo")}
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               disabled={busy}
               onChange={(event) => setFile(event.target.files?.[0] || null)}
             />
@@ -117,6 +122,14 @@ export function AvatarUploader({
               : t("Enregistrer ma photo", "Save my photo")}
           </button>
         </form>
+        {saved && (
+          <p className="notice" role="status">
+            {t(
+              "Photo enregistrée. Elle apparaît aussi dans vos discussions de groupe.",
+              "Photo saved. It also appears in your group discussions.",
+            )}
+          </p>
+        )}
         {error && (
           <p className="notice error" role="alert">
             {error}

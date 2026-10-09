@@ -302,7 +302,27 @@ export async function optimizeImage(
 ): Promise<File> {
   if (source.size > 30 * 1024 * 1024)
     throw new Error("Photo source trop lourde (30 Mo maximum).");
-  const bitmap = await createImageBitmap(source);
+  let bitmap: ImageBitmap | HTMLImageElement;
+  try {
+    if (typeof createImageBitmap !== "function")
+      throw new Error("Use image decoder");
+    bitmap = await createImageBitmap(source);
+  } catch {
+    const sourceUrl = URL.createObjectURL(source);
+    try {
+      bitmap = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () =>
+          reject(
+            new Error("Photo illisible. Utilisez une photo JPEG, PNG ou WebP."),
+          );
+        image.src = sourceUrl;
+      });
+    } finally {
+      URL.revokeObjectURL(sourceUrl);
+    }
+  }
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
@@ -310,7 +330,7 @@ export async function optimizeImage(
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Impossible de préparer cette image.");
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
+  if ("close" in bitmap) bitmap.close();
   const encode = (encodingQuality: number) =>
     new Promise<Blob>((resolve, reject) =>
       canvas.toBlob(
@@ -445,7 +465,10 @@ function optimizeVideo(
           await Promise.race([
             audioContext.resume(),
             new Promise<never>((_, reject) => {
-              resumeTimer = setTimeout(() => reject(new Error("Audio preparation timed out")), 3000);
+              resumeTimer = setTimeout(
+                () => reject(new Error("Audio preparation timed out")),
+                3000,
+              );
             }),
           ]);
         } finally {
