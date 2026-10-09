@@ -150,9 +150,14 @@ export async function GET(req: NextRequest) {
       case "admin/members":
         data = await query("profiles");
         break;
-      case "admin/news":
-        data = await query("news");
+      case "admin/news": {
+        const page = Math.max(1, Math.min(1000000, Number(req.nextUrl.searchParams.get("page")) || 1));
+        const { data: articles, error, count } = await db.from("news").select("*", { count: "exact" })
+          .order("created_at", { ascending: false }).order("id").range((page - 1) * 20, page * 20 - 1);
+        check(error);
+        data = { articles, page, total: count || 0 };
         break;
+      }
       case "admin/media": {
         const rows = (await query("gallery_media")) as Array<{
           object_path: string;
@@ -375,6 +380,7 @@ export async function POST(req: NextRequest) {
         "manage_member",
         "delete_account",
         "save_news",
+        "create_news_upload",
         "delete_news",
       "create_group",
       "add_member",
@@ -385,7 +391,13 @@ export async function POST(req: NextRequest) {
       "delete_media",
       ];
       if (adminOps.includes(op)) assertAdmin(p);
-      if (op === "create_media_upload") {
+      if (op === "create_news_upload") {
+        const path = `${p.id}/${crypto.randomUUID()}.webp`;
+        const { data, error } = await db.storage.from("news-photos").createSignedUploadUrl(path, { upsert: false });
+        check(error);
+        if (!data?.token) throw new Error("Could not create upload token");
+        result = { path, token: data.token };
+      } else if (op === "create_media_upload") {
         const d = z
           .object({
             content_type: z.enum([
@@ -629,16 +641,23 @@ export async function POST(req: NextRequest) {
               content_fr: z.string().min(10).max(50000),
               content_en: z.string().min(10).max(50000),
               published: z.boolean(),
-              cover_image: z.string().url().optional().or(z.literal("")),
+              cover_path: z.string().max(500).optional(),
             })
             .parse(b);
+          const { cover_path, ...fields } = d;
+          const values: Record<string, unknown> = { ...fields };
+          if (cover_path !== undefined) {
+            if (!new RegExp(`^${p.id}/[0-9a-f-]{36}\\.webp$`).test(cover_path))
+              throw new ForbiddenError("Invalid cover photo path");
+            const [folder, filename] = cover_path.split("/");
+            const { data: files, error: storageError } = await db.storage.from("news-photos").list(folder, { search: filename });
+            check(storageError);
+            if (!files?.some(file => file.name === filename)) throw new Error("Cover photo not uploaded");
+            values.cover_image = db.storage.from("news-photos").getPublicUrl(cover_path).data.publicUrl;
+          }
           const { error } = b.id
-            ? await db.from("news").update(d).eq("id", uuid.parse(b.id))
-            : await db.from("news").insert({
-                ...d,
-                cover_image: d.cover_image || null,
-                author_id: p.id,
-              });
+            ? await db.from("news").update(values).eq("id", uuid.parse(b.id)).select("id").single()
+            : await db.from("news").insert({ ...values, author_id: p.id });
           check(error);
           break;
         }
