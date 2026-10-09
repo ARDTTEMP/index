@@ -558,7 +558,7 @@ export async function POST(req: NextRequest) {
           .object({
             media_type: z.enum(["image", "video"]),
             title_fr: short,
-            title_en: short,
+            title_en: z.union([short, z.literal("")]).default(""),
             description_fr: z.string().max(2000).default(""),
             description_en: z.string().max(2000).default(""),
             object_path: z.string().max(500),
@@ -594,6 +594,8 @@ export async function POST(req: NextRequest) {
           throw new Error("Uploaded video poster not found");
         const { error } = await db.from("gallery_media").insert({
           ...d,
+          title_en: d.title_en || d.title_fr,
+          description_en: d.description_en || d.description_fr,
           poster_path: d.poster_path || null,
           created_by: p.id,
           published: true,
