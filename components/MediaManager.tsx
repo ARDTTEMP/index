@@ -29,6 +29,13 @@ export default function MediaManager({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
+  const [published, setPublished] = useState(false);
+  const uploaded = useRef<{
+    source: File;
+    path: string;
+    poster: string | null;
+    type: "image" | "video";
+  } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const t = (fr: string, en: string) => text(l, fr, en);
 
@@ -88,11 +95,20 @@ export default function MediaManager({
             }
             setBusy(true);
             setError("");
+            setPublished(false);
             try {
               let file = selected;
+              const previous = uploaded.current;
+              const reuse =
+                previous &&
+                previous.source.name === selected.name &&
+                previous.source.size === selected.size &&
+                previous.source.lastModified === selected.lastModified;
               let poster: File | null = null;
               let mediaType: "image" | "video";
-              if (selected.type.startsWith("image/")) {
+              if (reuse) {
+                mediaType = previous.type;
+              } else if (selected.type.startsWith("image/")) {
                 setProgress(
                   t("Optimisation de la photo…", "Optimizing photo…"),
                 );
@@ -119,7 +135,7 @@ export default function MediaManager({
                     "Preparing video and poster…",
                   ),
                 );
-                poster = await makePoster(selected);
+                poster = await makePoster(selected).catch(() => null);
                 setProgress(
                   t("Optimisation de la vidéo…", "Optimizing video…"),
                 );
@@ -160,6 +176,7 @@ export default function MediaManager({
               const contentType =
                 file.type === "image/webp" ? "image/webp" : file.type;
               if (
+                !reuse &&
                 !new Set(["image/webp", "video/webm", "video/mp4"]).has(
                   contentType,
                 )
@@ -170,11 +187,22 @@ export default function MediaManager({
                     "The optimized format is not supported by storage.",
                   ),
                 );
-              const objectPath = await upload(file, contentType);
-              let posterPath: string | null = null;
+              const objectPath = reuse
+                ? previous.path
+                : await upload(file, contentType);
+              let posterPath: string | null = reuse ? previous.poster : null;
+              uploaded.current = {
+                source: selected,
+                path: objectPath,
+                poster: posterPath,
+                type: mediaType,
+              };
               if (poster) {
                 setProgress(t("Envoi de la miniature…", "Uploading poster…"));
-                posterPath = await upload(poster, "image/webp");
+                posterPath = await upload(poster, "image/webp").catch(
+                  () => null,
+                );
+                uploaded.current.poster = posterPath;
               }
               setProgress(t("Publication…", "Publishing…"));
               await act({
@@ -187,6 +215,8 @@ export default function MediaManager({
                 object_path: objectPath,
                 poster_path: posterPath,
               });
+              uploaded.current = null;
+              setPublished(true);
               form.reset();
             } catch (e) {
               setError(e instanceof Error ? e.message : "Error");
@@ -228,6 +258,14 @@ export default function MediaManager({
           {progress && (
             <p className="notice" role="status">
               {progress}
+            </p>
+          )}
+          {published && (
+            <p role="status">
+              {t(
+                "Média publié dans la galerie.",
+                "Media published in the gallery.",
+              )}
             </p>
           )}
           {error && (
@@ -362,8 +400,13 @@ function makePoster(source: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
     const url = URL.createObjectURL(source);
-    video.preload = "metadata";
+    video.preload = "auto";
+    video.playsInline = true;
     video.muted = true;
+    const timer = window.setTimeout(
+      () => cleanup(new Error("Miniature vidéo indisponible.")),
+      10000,
+    );
     video.onloadeddata = () => {
       const scale = Math.min(
         1,
@@ -387,6 +430,9 @@ function makePoster(source: File): Promise<File> {
     };
     video.onerror = () => cleanup(new Error("Lecture de la vidéo impossible."));
     const cleanup = (error?: Error) => {
+      window.clearTimeout(timer);
+      video.onloadeddata = null;
+      video.onerror = null;
       URL.revokeObjectURL(url);
       video.src = "";
       if (error) reject(error);
