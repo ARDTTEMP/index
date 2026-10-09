@@ -16,6 +16,41 @@ import { text, type Locale } from "@/lib/domain";
 import PublicForm from "@/components/PublicForm";
 import { AuthTools, AuthHome } from "@/components/SiteFrame";
 const icons = [Recycle, FlaskConical, GraduationCap, HeartHandshake];
+const fieldPhotos = [
+  { src: "/gallery/equipe.webp", fr: "Une équipe engagée", en: "A committed team", altFr: "Des participants en tee-shirts ARDTTEMP réunis pendant une activité de terrain.", altEn: "Participants wearing ARDTTEMP shirts together during a field activity." },
+  { src: "/auth-community.webp", fr: "La collecte en action", en: "Collection in action", altFr: "Des bénévoles en gilets réfléchissants mobilisés pour ramasser les déchets.", altEn: "Volunteers in reflective vests working together to collect waste." },
+  { src: "/gallery/terrain.webp", fr: "Mobilisés dans nos quartiers", en: "Taking action in our neighbourhoods", altFr: "Des bénévoles transportent les sacs de déchets collectés dans la rue.", altEn: "Volunteers carrying bags of collected waste along the street." },
+  { src: "/gallery/collecte.webp", fr: "Chaque déchet collecté compte", en: "Every piece of collected waste matters", altFr: "Des sacs de déchets rassemblés par les participants à une collecte.", altEn: "Bags of waste gathered by participants during a collection activity." },
+  { src: "/gallery/collectif.webp", fr: "La force du collectif", en: "The strength of collective action", altFr: "Un groupe de participants réuni à l’occasion d’une activité de terrain.", altEn: "A group of participants gathered during a field activity." },
+  { src: "/gallery/mobilisation.webp", fr: "Les visages de l’engagement", en: "The faces of commitment", altFr: "Des participants en gilets réfléchissants pendant une pause sur le terrain.", altEn: "Participants in reflective vests taking a break during a field activity." },
+];
+const partners = [
+  { name: "GIZ", src: "/partners/giz.svg", url: "https://www.giz.de/en" },
+  { name: "NAMé Recycling", src: "/partners/name.png", url: "https://www.name-recycling.com/" },
+  { name: "PNUD", src: "/partners/pnud.svg", url: "https://www.undp.org/fr/cameroon" },
+  { name: "MINHDU", src: "/partners/minhdu.png", url: "https://www.minhdu.gov.cm/" },
+  { name: "Plan International Cameroon", src: "/partners/plan.svg", url: "https://plan-international.org/cameroon/" },
+];
+function FieldPhotos({ l, limit = fieldPhotos.length, gallery = false }: { l: Locale; limit?: number; gallery?: boolean }) {
+  return <div className={`field-photo-grid${gallery ? " field-photo-gallery" : ""}`}>
+    {fieldPhotos.slice(0, limit).map(photo => <figure className="field-photo-card" key={photo.src}>
+      <a href={gallery ? photo.src : "/gallery"} target={gallery ? "_blank" : undefined} rel={gallery ? "noopener noreferrer" : undefined} aria-label={text(l, gallery ? `Agrandir : ${photo.fr} (nouvel onglet)` : `Voir la galerie : ${photo.fr}`, gallery ? `Enlarge: ${photo.en} (new tab)` : `View gallery: ${photo.en}`)}>
+        <span className="field-photo-visual"><Image src={photo.src} alt={text(l, photo.altFr, photo.altEn)} fill sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw" /></span>
+        <figcaption>{text(l, photo.fr, photo.en)}</figcaption>
+      </a>
+    </figure>)}
+  </div>;
+}
+function Partners({ l }: { l: Locale }) {
+  return <section className="section partners-section" aria-labelledby="partners-title"><div className="container">
+    <p className="eyebrow">{text(l, "Nos partenaires", "Our partners")}</p>
+    <h2 id="partners-title">{text(l, "Ensemble, allons plus loin.", "Together, we can go further.")}</h2>
+    <div className="partners-grid">{partners.map(partner => <a className="partner-card" href={partner.url} target="_blank" rel="noopener noreferrer" key={partner.name} aria-label={`${partner.name} — ${text(l, "site officiel (nouvel onglet)", "official website (new tab)")}`}>
+      <span className={`partner-logo${partner.name.startsWith("Plan") ? " partner-logo-plan" : ""}`}><Image src={partner.src} alt={`Logo ${partner.name}`} width={240} height={110} sizes="(max-width: 600px) 40vw, 200px" /></span>
+      <span>{partner.name}</span>
+    </a>)}</div>
+  </div></section>;
+}
 function Pillars({ l }: { l: Locale }) {
   return (
     <div className="grid four">
@@ -90,13 +125,13 @@ export default async function PublicPage({
               <h1>{t("ARDTTEMP en image", "ARDTTEMP in pictures")}</h1>
               <p className="lead">
                 {t(
-                  "Découvrez une action de collecte et de sensibilisation menée avec l’engagement de nos bénévoles.",
-                  "See a collection and awareness activity made possible by our volunteers’ commitment.",
+                  "Découvrez nos collectes, nos équipes et les moments d’engagement partagés sur le terrain.",
+                  "Discover our collections, our teams and moments of shared commitment on the ground.",
                 )}
               </p>
             </div>
             <span className="gallery-counter" aria-label={t("Médias publiés", "Published media")}>
-              {String(galleryItems.length + 1).padStart(2, "0")} <small>/{String(galleryItems.length + 1).padStart(2, "0")} {t("médias", "items")}</small>
+              {String(galleryItems.length + fieldPhotos.length + 1).padStart(2, "0")} <small>/{String(galleryItems.length + fieldPhotos.length + 1).padStart(2, "0")} {t("médias", "items")}</small>
             </span>
           </div>
         </section>
@@ -129,6 +164,7 @@ export default async function PublicPage({
                 </Link>
               </div>
             </article>
+            <FieldPhotos l={l} gallery />
             {galleryItems.length > 0 && (
               <div className="gallery-media-grid" aria-label={t("Photos et vidéos récentes", "Recent photos and videos")}>
                 {galleryItems.map((item) => (
@@ -163,8 +199,8 @@ export default async function PublicPage({
             )}
             <p className="gallery-note">
               {t(
-                "Cette galerie s’enrichira au fil des prochaines activités d’ARDTTEMP.",
-                "This gallery will grow with ARDTTEMP’s upcoming activities.",
+                "Retrouvez ici nos photos de terrain et les nouvelles publications de l’équipe. Cliquez sur une photo pour l’agrandir.",
+                "Explore our field photos and the team’s latest publications. Click a photo to enlarge it.",
               )}
             </p>
           </div>
@@ -255,6 +291,12 @@ export default async function PublicPage({
             <Pillars l={l} />
           </div>
         </section>
+        <section className="section field-photo-section">
+          <div className="container">
+            <div className="section-head"><div><p className="eyebrow">{t("Sur le terrain", "On the ground")}</p><h2>{t("L’engagement prend vie.", "Commitment comes to life.")}</h2></div><Link className="link" href="/gallery">{t("ARDTTEMP en image →", "ARDTTEMP in pictures →")}</Link></div>
+            <FieldPhotos l={l} limit={3} />
+          </div>
+        </section>
         <section className="section pale">
           <div className="container">
             <p className="eyebrow">{t("Notre procédé", "Our process")}</p>
@@ -303,6 +345,7 @@ export default async function PublicPage({
             </div>
           </div>
         </section>
+        <Partners l={l} />
         <section className="section pale">
           <div className="container">
             <p className="eyebrow">{t("Nos valeurs", "Our values")}</p>
@@ -449,6 +492,7 @@ export default async function PublicPage({
         <div className="container">
           {(route === "about" || route === "activities") && (
             <>
+              <div className="page-field-photos"><FieldPhotos l={l} limit={route === "about" ? 3 : 6} /></div>
               <div className="prose">
                 {existing[l][route]
                   .filter((x) => x.tag !== "h1")
