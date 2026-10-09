@@ -675,7 +675,9 @@ export async function POST(req: NextRequest) {
               amount: z.coerce.number().int().min(100).max(100000000),
               period: z.string().trim().min(1).max(64),
               instructions_fr: z.string().trim().min(10).max(5000),
-              instructions_en: z.string().trim().min(10).max(5000),
+              instructions_en: z
+                .union([z.string().trim().min(10).max(5000), z.literal("")])
+                .default(""),
               checkout_url: z.union([
                 z.url().refine((value) => new URL(value).protocol === "https:"),
                 z.literal(""),
@@ -686,10 +688,14 @@ export async function POST(req: NextRequest) {
             .from("dues_settings")
             .update({
               ...settings,
+              instructions_en:
+                settings.instructions_en || settings.instructions_fr,
               checkout_url: settings.checkout_url || null,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", true);
+            .eq("id", true)
+            .select("id")
+            .single();
           check(error);
           break;
         }
@@ -760,7 +766,7 @@ export async function POST(req: NextRequest) {
             .parse(b);
           const { data, error } = await db.storage
             .from(d.bucket)
-            .createSignedUrl(d.path, 60);
+            .createSignedUrl(d.path, 300);
           check(error);
           result = { url: data?.signedUrl };
           break;
@@ -859,15 +865,21 @@ export async function POST(req: NextRequest) {
           const d = z
             .object({
               title_fr: short,
-              title_en: short,
+              title_en: z.union([short, z.literal("")]).default(""),
               content_fr: z.string().min(10).max(50000),
-              content_en: z.string().min(10).max(50000),
+              content_en: z
+                .union([z.string().trim().min(10).max(50000), z.literal("")])
+                .default(""),
               published: z.boolean(),
               cover_path: z.string().max(500).optional(),
             })
             .parse(b);
           const { cover_path, ...fields } = d;
-          const values: Record<string, unknown> = { ...fields };
+          const values: Record<string, unknown> = {
+            ...fields,
+            title_en: fields.title_en || fields.title_fr,
+            content_en: fields.content_en || fields.content_fr,
+          };
           if (cover_path !== undefined) {
             if (!new RegExp(`^${p.id}/[0-9a-f-]{36}\\.webp$`).test(cover_path))
               throw new ForbiddenError("Invalid cover photo path");
@@ -882,15 +894,23 @@ export async function POST(req: NextRequest) {
               .from("news-photos")
               .getPublicUrl(cover_path).data.publicUrl;
           }
-          const { error } = b.id
+          const { data: saved, error } = b.id
             ? await db
                 .from("news")
                 .update(values)
                 .eq("id", uuid.parse(b.id))
                 .select("id")
                 .single()
-            : await db.from("news").insert({ ...values, author_id: p.id });
+            : await db
+                .from("news")
+                .insert({ ...values, author_id: p.id })
+                .select("id")
+                .single();
           check(error);
+          result = {
+            id: saved!.id,
+            article_url: fields.published ? `/news/${saved!.id}` : null,
+          };
           break;
         }
         case "delete_news": {
@@ -1082,13 +1102,11 @@ async function upload(req: NextRequest) {
     bucket !== "group-files"
       ? `${p.id}/${crypto.randomUUID()}.${ext}`
       : `groups/${uuid.parse(form.get("group_id"))}/${p.id}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await db.storage
-    .from(bucket)
-    .upload(path, bytes, {
-      contentType: file.type,
-      upsert: false,
-      cacheControl: "31536000",
-    });
+  const { error } = await db.storage.from(bucket).upload(path, bytes, {
+    contentType: file.type,
+    upsert: false,
+    cacheControl: "31536000",
+  });
   check(error);
   if (bucket === "profile-photos") {
     const { error: profileError } = await db
