@@ -24,6 +24,8 @@ do $$declare a jsonb; repeat_a jsonb; d uuid;begin
  perform public.notchpay_payment('notch-test-worker','settle',jsonb_build_object('id',a->>'id','reference','trx.notch_live','amount',5000,'currency','XAF','sandbox',false,'status','complete'));
  if (select points from public.profiles where id='20000000-0000-4000-8000-000000000001')<>200 then raise exception 'FAILED: expected exactly 200 points';end if;
  if (select count(*) from private.email_outbox where dedupe_key='dues-paid:20000000-0000-4000-8000-000000000002')<>1 then raise exception 'FAILED: duplicate receipt';end if;
+ repeat_a:=public.notchpay_payment('notch-test-worker','settle',jsonb_build_object('id',a->>'id','reference','trx.notch_live','amount',5000,'currency','XAF','sandbox',false,'status','refunded'));
+ if repeat_a->>'status'<>'refunded' or (select points from public.profiles where id='20000000-0000-4000-8000-000000000001')<>200 then raise exception 'FAILED: refund reconciliation status or points changed';end if;
  d:=public.submit_donation('notch-test-worker','{"amount":1000,"donor_name":"Notch Test","donor_email":"notch-test@example.invalid","donor_phone":"+237600000001","message":"Fixture","is_monthly":false,"payment_method":"mobile_money","locale":"fr"}');
  a:=public.notchpay_payment('notch-test-worker','prepare',jsonb_build_object('kind','donation','target',d,'sandbox',false));
  perform public.notchpay_payment('notch-test-worker','attach',jsonb_build_object('id',a->>'id','reference','trx.notch_donation','url','https://pay.notchpay.co/pay_donation'));
@@ -31,8 +33,8 @@ do $$declare a jsonb; repeat_a jsonb; d uuid;begin
  if (select status from public.donations where id=d)<>'completed' then raise exception 'FAILED: donation not completed';end if;
  d:=public.submit_notchpay_donation('notch-test-worker','20000000-0000-4000-8000-000000000010','{"amount":1000,"donor_name":"Retry Test","donor_email":"retry@example.invalid","donor_phone":"+237600000001","message":"Fixture","is_monthly":false,"payment_method":"mobile_money","locale":"fr"}');
  if d<>public.submit_notchpay_donation('notch-test-worker','20000000-0000-4000-8000-000000000010','{"amount":1000,"donor_name":"Retry Test","donor_email":"retry@example.invalid","donor_phone":"+237600000001","message":"Fixture","is_monthly":false,"payment_method":"mobile_money","locale":"fr"}') then raise exception 'FAILED: duplicate donation after retry';end if;
- delete from auth.users where id='20000000-0000-4000-8000-000000000001';
- if exists(select 1 from private.notchpay_payments where provider_reference='trx.notch_live' and dues_id is not null) then raise exception 'FAILED: account deletion did not detach ledger';end if;
+ delete from public.membership_payments where id='20000000-0000-4000-8000-000000000002';
+ if exists(select 1 from private.notchpay_payments where provider_reference='trx.notch_live' and dues_id is not null) then raise exception 'FAILED: payment deletion did not detach ledger';end if;
 
 end$$;
 select 'PASS: worker authorization, ownership, sandbox isolation, amount matching, duplicate checkout prevention, 200 points once, receipt once and donation confirmation' as result;
