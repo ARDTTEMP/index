@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -20,19 +20,50 @@ export async function api(body: Record<string, unknown>) {
   if (!r.ok) throw new Error(data.error || "Request failed");
   return data;
 }
-function PasswordField({ label, name, locale: l, fresh = false, required = true }: {
-  label: string; name: string; locale: Locale; fresh?: boolean; required?: boolean;
+function PasswordField({
+  label,
+  name,
+  locale: l,
+  fresh = false,
+  required = true,
+}: {
+  label: string;
+  name: string;
+  locale: Locale;
+  fresh?: boolean;
+  required?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
   const fieldId = useId();
-  return <div style={{ display: "grid", gap: 7 }}><label htmlFor={fieldId}>{label}</label><span className="password-control">
-    <input id={fieldId} name={name} type={visible ? "text" : "password"} required={required}
-      minLength={fresh ? 12 : undefined} maxLength={128}
-      autoComplete={fresh ? "new-password" : "current-password"} />
-    <button type="button" aria-pressed={visible} aria-controls={fieldId}
-      aria-label={text(l, visible ? "Masquer le mot de passe" : "Afficher le mot de passe", visible ? "Hide password" : "Show password")}
-      onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={19} /> : <Eye size={19} />}</button>
-  </span></div>;
+  return (
+    <div style={{ display: "grid", gap: 7 }}>
+      <label htmlFor={fieldId}>{label}</label>
+      <span className="password-control">
+        <input
+          id={fieldId}
+          name={name}
+          type={visible ? "text" : "password"}
+          required={required}
+          minLength={fresh ? 12 : undefined}
+          maxLength={128}
+          autoComplete={fresh ? "new-password" : "current-password"}
+        />
+        <button
+          type="button"
+          aria-pressed={visible}
+          aria-controls={fieldId}
+          aria-label={text(
+            l,
+            visible ? "Masquer le mot de passe" : "Afficher le mot de passe",
+            visible ? "Hide password" : "Show password",
+          )}
+          onClick={() => setVisible(!visible)}
+        >
+          {visible ? <EyeOff size={19} /> : <Eye size={19} />}
+        </button>
+      </span>
+    </div>
+  );
 }
 export default function PublicForm({
   kind,
@@ -47,9 +78,20 @@ export default function PublicForm({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
-  const [registrationProfile, setRegistrationProfile] = useState<Record<string, FormDataEntryValue>>({});
+  const [registrationProfile, setRegistrationProfile] = useState<
+    Record<string, FormDataEntryValue>
+  >({});
   const [amount, setAmount] = useState(10000);
   const [success, setSuccess] = useState(false);
+  const [notchEnabled, setNotchEnabled] = useState(false);
+  const donationKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (kind === "donate")
+      fetch("/api/payments/notchpay")
+        .then((r) => r.json())
+        .then((d) => setNotchEnabled(d.enabled))
+        .catch(() => {});
+  }, [kind]);
   const t = (fr: string, en: string) => text(l, fr, en);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,8 +105,16 @@ export default function PublicForm({
     setBusy(true);
     setError("");
     const fd = new FormData(form);
-    if ((kind === "register" || kind === "reset") && fd.get("password") !== fd.get("confirmation")) {
-      setError(t("Les deux mots de passe doivent être identiques.", "Both passwords must match."));
+    if (
+      (kind === "register" || kind === "reset") &&
+      fd.get("password") !== fd.get("confirmation")
+    ) {
+      setError(
+        t(
+          "Les deux mots de passe doivent être identiques.",
+          "Both passwords must match.",
+        ),
+      );
       setBusy(false);
       form.querySelector<HTMLInputElement>('[name="confirmation"]')?.focus();
       return;
@@ -76,13 +126,25 @@ export default function PublicForm({
     if (kind === "donate") {
       b.amount = amount;
       b.is_monthly = fd.get("is_monthly") === "on";
+      if (b.payment_method === "notchpay") {
+        donationKey.current ||= crypto.randomUUID();
+        b.payment_key = donationKey.current;
+      }
     }
     try {
       const data = await api(b);
+      if (data.checkout_url) {
+        window.location.assign(data.checkout_url);
+        return;
+      }
       if (kind === "login") {
         const next = params.get("next");
         router.push(
-          next?.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/dashboard",
+          next?.startsWith("/") &&
+            !next.startsWith("//") &&
+            !next.includes("\\")
+            ? next
+            : "/dashboard",
         );
         router.refresh();
       } else if (kind === "register") {
@@ -131,11 +193,25 @@ export default function PublicForm({
   return (
     <>
       {kind === "login" && params.get("error") === "confirmation" && !error && (
-        <div className="notice warning" role="alert">{t("Le lien de confirmation est invalide ou a expiré. Si votre adresse est déjà confirmée, connectez-vous. Sinon, contactez notre équipe.", "The confirmation link is invalid or expired. If your email is already confirmed, sign in. Otherwise, contact our team.")} <Link className="link" href="/contact">{t("Nous contacter", "Contact us")}</Link></div>
+        <div className="notice warning" role="alert">
+          {t(
+            "Le lien de confirmation est invalide ou a expiré. Si votre adresse est déjà confirmée, connectez-vous. Sinon, contactez notre équipe.",
+            "The confirmation link is invalid or expired. If your email is already confirmed, sign in. Otherwise, contact our team.",
+          )}{" "}
+          <Link className="link" href="/contact">
+            {t("Nous contacter", "Contact us")}
+          </Link>
+        </div>
       )}
       {message && (
         <div className="notice" role="status">
-          {success && <CheckCircle2 className="auth-success-icon" size={28} aria-hidden="true" />}
+          {success && (
+            <CheckCircle2
+              className="auth-success-icon"
+              size={28}
+              aria-hidden="true"
+            />
+          )}
           {message}
           {success && kind === "register" && (
             <p>
@@ -144,7 +220,14 @@ export default function PublicForm({
               </Link>
             </p>
           )}
-          {success && kind === "forgot" && <p className="form-note">{t("Consultez également vos courriers indésirables. Le lien vous permettra de choisir un nouveau mot de passe.", "Also check your spam folder. The link will let you choose a new password.")}</p>}
+          {success && kind === "forgot" && (
+            <p className="form-note">
+              {t(
+                "Consultez également vos courriers indésirables. Le lien vous permettra de choisir un nouveau mot de passe.",
+                "Also check your spam folder. The link will let you choose a new password.",
+              )}
+            </p>
+          )}
         </div>
       )}
       {error && (
@@ -155,11 +238,20 @@ export default function PublicForm({
       {!success && (
         <form className="form" onSubmit={submit} aria-busy={busy}>
           {kind === "register" && (
-            <div className="step-indicator" aria-label={t(`Étape ${step} sur 2`, `Step ${step} of 2`)}>
-              <span className={step === 1 ? "active" : "completed"} aria-current={step === 1 ? "step" : undefined}>
+            <div
+              className="step-indicator"
+              aria-label={t(`Étape ${step} sur 2`, `Step ${step} of 2`)}
+            >
+              <span
+                className={step === 1 ? "active" : "completed"}
+                aria-current={step === 1 ? "step" : undefined}
+              >
                 1. {t("Votre profil", "Your profile")}
               </span>
-              <span className={step === 2 ? "active" : ""} aria-current={step === 2 ? "step" : undefined}>
+              <span
+                className={step === 2 ? "active" : ""}
+                aria-current={step === 2 ? "step" : undefined}
+              >
                 2. {t("Votre engagement", "Your commitment")}
               </span>
             </div>
@@ -177,11 +269,19 @@ export default function PublicForm({
             </label>
           )}
           {kind === "login" && (
-            <PasswordField label={t("Mot de passe", "Password")} name="password" locale={l} />
+            <PasswordField
+              label={t("Mot de passe", "Password")}
+              name="password"
+              locale={l}
+            />
           )}
           {kind === "register" && (
             <>
-              <fieldset disabled={step !== 1} className="registration-step" style={{ display: step === 1 ? "grid" : "none", gap: 20 }}>
+              <fieldset
+                disabled={step !== 1}
+                className="registration-step"
+                style={{ display: step === 1 ? "grid" : "none", gap: 20 }}
+              >
                 <label>
                   {t("Nom complet", "Full name")}
                   <input
@@ -235,14 +335,14 @@ export default function PublicForm({
                   </select>
                 </label>
               </fieldset>
-              <fieldset disabled={step !== 2} className="registration-step" style={{ display: step === 2 ? "grid" : "none", gap: 20 }}>
+              <fieldset
+                disabled={step !== 2}
+                className="registration-step"
+                style={{ display: step === 2 ? "grid" : "none", gap: 20 }}
+              >
                 <label>
                   {t("Rôle demandé", "Requested role")}
-                  <select
-                    name="requested_role"
-                    required
-                    defaultValue="membre"
-                  >
+                  <select name="requested_role" required defaultValue="membre">
                     {memberRoles.map((r) => (
                       <option key={r} value={r}>
                         {roleLabels[l][r]}
@@ -260,11 +360,23 @@ export default function PublicForm({
                   />
                 </label>
                 <div className="form-grid">
-                  <PasswordField label={t(
+                  <PasswordField
+                    label={t(
                       "Mot de passe — 12 caractères minimum",
                       "Password — at least 12 characters",
-                    )} name="password" locale={l} fresh required={step === 2} />
-                  <PasswordField label={t("Confirmer le mot de passe", "Confirm password")} name="confirmation" locale={l} fresh required={step === 2} />
+                    )}
+                    name="password"
+                    locale={l}
+                    fresh
+                    required={step === 2}
+                  />
+                  <PasswordField
+                    label={t("Confirmer le mot de passe", "Confirm password")}
+                    name="confirmation"
+                    locale={l}
+                    fresh
+                    required={step === 2}
+                  />
                 </div>
                 <label className="check">
                   <input type="checkbox" name="terms" required={step === 2} />
@@ -397,6 +509,14 @@ export default function PublicForm({
               <label>
                 {t("Moyen de paiement souhaité", "Preferred payment method")}
                 <select name="payment_method">
+                  {notchEnabled && (
+                    <option value="notchpay">
+                      {t(
+                        "Payer en ligne — Notch Pay",
+                        "Pay online — Notch Pay",
+                      )}
+                    </option>
+                  )}
                   <option value="mobile_money">
                     Mobile Money (MTN / Orange)
                   </option>
@@ -414,16 +534,30 @@ export default function PublicForm({
               </label>
               <p className="form-note">
                 {t(
-                  "Le paiement en ligne est en cours de configuration. Votre intention de don sera enregistrée en attente ; notre équipe vous indiquera comment régler.",
-                  "Online payment is being configured. Your pledge will be recorded as pending; our team will provide payment instructions.",
+                  notchEnabled
+                    ? "Avec Notch Pay, vous serez dirigé vers la page de paiement. Votre don sera confirmé après vérification. Les autres moyens restent disponibles auprès de notre équipe."
+                    : "Le paiement en ligne est en cours de configuration. Votre intention de don sera enregistrée en attente ; notre équipe vous indiquera comment régler.",
+                  notchEnabled
+                    ? "Notch Pay takes you to the payment page. Your donation is confirmed after verification. Other payment methods remain available through our team."
+                    : "Online payment is being configured. Your pledge will be recorded as pending; our team will provide payment instructions.",
                 )}
               </p>
             </>
           )}
           {kind === "reset" && (
             <>
-              <PasswordField label={t("Nouveau mot de passe", "New password")} name="password" locale={l} fresh />
-              <PasswordField label={t("Confirmer le mot de passe", "Confirm password")} name="confirmation" locale={l} fresh />
+              <PasswordField
+                label={t("Nouveau mot de passe", "New password")}
+                name="password"
+                locale={l}
+                fresh
+              />
+              <PasswordField
+                label={t("Confirmer le mot de passe", "Confirm password")}
+                name="confirmation"
+                locale={l}
+                fresh
+              />
             </>
           )}
           <div className="actions" style={{ marginTop: 0 }}>
@@ -434,7 +568,8 @@ export default function PublicForm({
                 disabled={busy}
                 onClick={() => setStep(1)}
               >
-                <ArrowLeft size={16} aria-hidden="true" />{t("Retour", "Back")}
+                <ArrowLeft size={16} aria-hidden="true" />
+                {t("Retour", "Back")}
               </button>
             )}
             <button className="button" disabled={busy}>
@@ -470,8 +605,21 @@ export default function PublicForm({
           )}
         </form>
       )}
-      {kind === "register" && !success && <p className="auth-bottom-link">{t("Vous avez déjà un compte ?", "Already have an account?")} <Link className="link" href="/login">{t("Se connecter", "Sign in")}</Link></p>}
-      {kind === "forgot" && <p className="auth-bottom-link"><Link className="link" href="/login">{t("Retour à la connexion", "Back to sign in")}</Link></p>}
+      {kind === "register" && !success && (
+        <p className="auth-bottom-link">
+          {t("Vous avez déjà un compte ?", "Already have an account?")}{" "}
+          <Link className="link" href="/login">
+            {t("Se connecter", "Sign in")}
+          </Link>
+        </p>
+      )}
+      {kind === "forgot" && (
+        <p className="auth-bottom-link">
+          <Link className="link" href="/login">
+            {t("Retour à la connexion", "Back to sign in")}
+          </Link>
+        </p>
+      )}
     </>
   );
 }

@@ -5,6 +5,7 @@ import { REGIONS, isAdmin, memberRoles, type Profile } from "@/lib/domain";
 import { rateLimit, RateLimitUnavailableError } from "@/lib/security";
 import { drainEmails } from "@/lib/emails";
 import { fallbackInstructions } from "@/lib/payments";
+import { notchConfigured, startNotchPayment } from "@/lib/notchpay";
 import { errorMessage } from "@/lib/errors";
 // Short-lived, caller-scoped cache. Authorization/RLS are checked on every request.
 const avatarLinks = new Map<string, { url: string; expires: number }>();
@@ -458,6 +459,7 @@ export async function POST(req: NextRequest) {
           message: z.string().max(2000),
           is_monthly: z.boolean(),
           payment_method: z.enum([
+            "notchpay",
             "smobilpay",
             "mobile_money",
             "bank_transfer",
@@ -465,21 +467,49 @@ export async function POST(req: NextRequest) {
           ]),
         })
         .parse(b);
+      if (d.payment_method === "notchpay" && !notchConfigured())
+        throw new ConfigurationError("Notch Pay n’est pas encore activé.");
       const { data: u } = await db.auth.getUser();
-      const { data, error } = await workerClient().rpc("submit_donation", {
-        p_secret: process.env.EMAIL_WORKER_SECRET,
-        p_data: {
-          ...d,
-          locale: l,
-          payment_method:
-            d.payment_method === "smobilpay"
+      const { data, error } = await workerClient().rpc(
+        d.payment_method === "notchpay"
+          ? "submit_notchpay_donation"
+          : "submit_donation",
+        {
+          p_secret: process.env.EMAIL_WORKER_SECRET,
+          ...(d.payment_method === "notchpay"
+            ? { p_key: uuid.parse(b.payment_key) }
+            : {}),
+          p_data: {
+            ...d,
+            locale: l,
+            payment_method: ["smobilpay", "notchpay"].includes(d.payment_method)
               ? "mobile_money"
               : d.payment_method,
+          },
+          p_user: u.user?.id || null,
         },
-        p_user: u.user?.id || null,
-      });
+      );
       check(error);
       result = { ok: true, reference: data, message: fallbackInstructions[l] };
+      if (d.payment_method === "notchpay") {
+        result = {
+          ok: true,
+          reference: data,
+          ...(await startNotchPayment("donation", uuid.parse(data))),
+        };
+      }
+    } else if (op === "pay_dues_notchpay") {
+      const p = await actor(db);
+      if (
+        !["pending", "approved"].includes(p.status) ||
+        !["membre", "volontaire"].includes(p.role)
+      )
+        throw new ForbiddenError("Account not eligible for dues");
+      await rateLimit(p.id, "pay_dues_notchpay");
+      if (!notchConfigured())
+        throw new ConfigurationError("Notch Pay n’est pas encore activé.");
+      const id = uuid.parse(await rpc("create_notchpay_dues", {}));
+      result = await startNotchPayment("dues", id, p.id);
     } else if (op === "create_admin") {
       const p = await actor(db);
       if (p.status !== "approved" || p.role !== "super_admin")

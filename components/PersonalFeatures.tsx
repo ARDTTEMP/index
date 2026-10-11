@@ -176,6 +176,13 @@ export function DuesPanel({
     [error, setError] = useState("");
   const t = (fr: string, en: string) => text(l, fr, en);
   const settings = data.settings;
+  const [notchEnabled, setNotchEnabled] = useState(false);
+  useEffect(() => {
+    fetch("/api/payments/notchpay")
+      .then((r) => r.json())
+      .then((d) => setNotchEnabled(d.enabled))
+      .catch(() => {});
+  }, []);
   const exempt = !["membre", "volontaire"].includes(profile.role);
   const labels: Record<string, string> = {
     pending: t("À régler", "To pay"),
@@ -320,6 +327,34 @@ export function DuesPanel({
                   {t("Payer en ligne ↗", "Pay online ↗")}
                 </a>
               )}
+              {notchEnabled &&
+                !data.payments.some(
+                  (payment) =>
+                    payment.period === settings.period &&
+                    payment.status === "paid",
+                ) && (
+                  <button
+                    className="button"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError("");
+                      try {
+                        const result = await api({ op: "pay_dues_notchpay" });
+                        window.location.assign(result.checkout_url);
+                      } catch (e) {
+                        setError(e instanceof Error ? e.message : "Error");
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {t(
+                      "Payer ma cotisation — Notch Pay",
+                      "Pay my membership fee — Notch Pay",
+                    )}
+                  </button>
+                )}
               <p className="form-note">
                 {t(
                   "Après votre versement, transmettez sa référence ou son justificatif ci-dessous. La cotisation sera confirmée après vérification par l’association et donnera droit à 200 points, une seule fois par période.",
