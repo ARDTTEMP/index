@@ -1,6 +1,7 @@
 import { ZodError } from "zod";
 import { type Locale, text } from "./domain";
 const french: Record<string, string> = {
+  "Payments must use Notch Pay": "Les paiements doivent passer par Notch Pay.",
   "Dues payment instructions not configured":
     "Le Super Admin doit d’abord enregistrer le montant et les instructions de cotisation.",
   "Account not eligible for dues":
