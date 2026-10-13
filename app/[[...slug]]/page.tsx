@@ -1,3 +1,6 @@
+import PageBlocks from "@/components/PageBlocks";
+import { editablePaths } from "@/lib/page-editor";
+import { managedPage } from "@/lib/managed-pages";
 import type { Metadata } from "next";
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
  const { slug = [] } = await params; const path = "/" + slug.join("/");
@@ -98,7 +101,14 @@ function CTA({ l }: { l: Locale }) {
     </div>
   );
 }
-export default async function PublicPage({
+export default async function PublicPage(props: { params: Promise<{slug?:string[]}>; searchParams: Promise<{page?:string}> }) {
+ const {slug=[]}=await props.params; const path="/"+slug.join("/");
+ const blocks=editablePaths.includes(path as typeof editablePaths[number])?await managedPage(path):null; const l=await locale();
+ if(blocks&&["/","/about","/activities"].includes(path))return <section className="section"><div className="container"><PageBlocks blocks={blocks} l={l}/></div></section>;
+ return <>{blocks&&<section className="section"><div className="container"><PageBlocks blocks={blocks} l={l}/></div></section>}{await ExistingPublicPage(props)}</>;
+}
+
+async function ExistingPublicPage({
   params, searchParams,
 }: {
   params: Promise<{ slug?: string[] }>;
