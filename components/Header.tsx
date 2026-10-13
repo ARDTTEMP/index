@@ -78,7 +78,7 @@ export default function Header({ locale: l }: { locale: Locale }) {
             aria-current={path === "/gallery" ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
-            {t("ARDTTEMP en image", "ARDTTEMP in pictures")}
+            {t("Galerie", "Gallery")}
           </Link>
         </nav>
         <div className="header-actions">
