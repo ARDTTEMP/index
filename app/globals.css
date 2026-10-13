@@ -1688,3 +1688,10 @@ body { font-family: "Century Gothic", CenturyGothic, Arial, sans-serif; }
   .member-screen .sidebar > a,
   .member-screen .sidebar > button { display: none; }
 }
+
+.footer-links .footer-shop { display:inline-flex; align-items:center; gap:20px; padding:10px 18px; margin-bottom:8px; border:1px solid #bed78e; border-radius:24px; color:#ecf5d7; font-weight:700; }
+.footer-links .footer-shop:hover { background:#ecf5d7; color:#193529; }
+
+.shop-dialog-backdrop{position:fixed;inset:0;background:#10251db3;display:grid;place-items:center;z-index:100;padding:20px}.shop-dialog{max-width:550px;max-height:90dvh;overflow:auto;width:100%}.shop-workspace{max-width:1100px;margin:auto;padding:24px}.shop-workspace form{display:grid;gap:14px}.shop-workspace label{display:grid;gap:6px}.shop-workspace textarea{min-height:100px}.shop-workspace .card{margin-bottom:20px}.shop-workspace img{width:140px;height:100px;object-fit:cover}
+
+dialog.shop-dialog::backdrop{background:#10251db3} dialog.shop-dialog{border:0;padding:24px}
