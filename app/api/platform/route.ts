@@ -458,13 +458,7 @@ export async function POST(req: NextRequest) {
           amount: z.coerce.number().int().min(100).max(100000000),
           message: z.string().max(2000),
           is_monthly: z.boolean(),
-          payment_method: z.enum([
-            "notchpay",
-            "smobilpay",
-            "mobile_money",
-            "bank_transfer",
-            "cash",
-          ]),
+          payment_method: z.literal("notchpay"),
         })
         .parse(b);
       if (d.payment_method === "notchpay" && !notchConfigured())
@@ -588,9 +582,9 @@ export async function POST(req: NextRequest) {
           .object({
             media_type: z.enum(["image", "video"]),
             title_fr: short,
-            title_en: z.union([short, z.literal("")]).default(""),
-            description_fr: z.string().max(2000).default(""),
-            description_en: z.string().max(2000).default(""),
+            title_en: short,
+            description_fr: z.string().trim().min(2).max(2000),
+            description_en: z.string().trim().min(2).max(2000),
             object_path: z.string().max(500),
             poster_path: z.string().max(500).nullable().optional(),
           })
@@ -624,8 +618,8 @@ export async function POST(req: NextRequest) {
           throw new Error("Uploaded video poster not found");
         const { error } = await db.from("gallery_media").insert({
           ...d,
-          title_en: d.title_en || d.title_fr,
-          description_en: d.description_en || d.description_fr,
+          title_en: d.title_en,
+          description_en: d.description_en,
           poster_path: d.poster_path || null,
           created_by: p.id,
           published: true,
@@ -676,20 +670,8 @@ export async function POST(req: NextRequest) {
       }
       switch (op) {
         case "create_dues":
-          result = { id: await rpc("create_dues_payment", {}) };
-          break;
         case "submit_dues":
-          await rpc("submit_dues_payment", {
-            p_id: uuid.parse(b.id),
-            p_method: z
-              .enum(["mobile_money", "bank_transfer", "cash", "online"])
-              .parse(b.method),
-            p_reference: z.string().trim().min(3).max(200).parse(b.reference),
-            p_receipt_path:
-              z.string().max(500).nullable().optional().parse(b.receipt_path) ||
-              null,
-          });
-          break;
+          throw new ForbiddenError("Payments must use Notch Pay");
         case "review_dues":
           await rpc("review_dues_payment", {
             p_id: uuid.parse(b.id),
@@ -706,23 +688,17 @@ export async function POST(req: NextRequest) {
             .object({
               amount: z.coerce.number().int().min(100).max(100000000),
               period: z.string().trim().min(1).max(64),
-              instructions_fr: z.string().trim().min(10).max(5000),
-              instructions_en: z
-                .union([z.string().trim().min(10).max(5000), z.literal("")])
-                .default(""),
-              checkout_url: z.union([
-                z.url().refine((value) => new URL(value).protocol === "https:"),
-                z.literal(""),
-              ]),
             })
             .parse(b);
           const { error } = await db
             .from("dues_settings")
             .update({
               ...settings,
+              instructions_fr:
+                "Paiement sécurisé et confirmation automatique avec Notch Pay.",
               instructions_en:
-                settings.instructions_en || settings.instructions_fr,
-              checkout_url: settings.checkout_url || null,
+                "Secure payment and automatic confirmation with Notch Pay.",
+              checkout_url: null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", true)
@@ -897,11 +873,9 @@ export async function POST(req: NextRequest) {
           const d = z
             .object({
               title_fr: short,
-              title_en: z.union([short, z.literal("")]).default(""),
+              title_en: short,
               content_fr: z.string().min(10).max(50000),
-              content_en: z
-                .union([z.string().trim().min(10).max(50000), z.literal("")])
-                .default(""),
+              content_en: z.string().trim().min(10).max(50000),
               published: z.boolean(),
               cover_path: z.string().max(500).optional(),
             })
@@ -909,8 +883,8 @@ export async function POST(req: NextRequest) {
           const { cover_path, ...fields } = d;
           const values: Record<string, unknown> = {
             ...fields,
-            title_en: fields.title_en || fields.title_fr,
-            content_en: fields.content_en || fields.content_fr,
+            title_en: fields.title_en,
+            content_en: fields.content_en,
           };
           if (cover_path !== undefined) {
             if (!new RegExp(`^${p.id}/[0-9a-f-]{36}\\.webp$`).test(cover_path))
