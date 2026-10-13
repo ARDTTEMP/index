@@ -1,3 +1,4 @@
+import { passwordValid, passwordHelp } from "@/lib/password";
 import { NextRequest, NextResponse, after } from "next/server";
 import { z } from "zod";
 import { supabase, workerClient, locale } from "@/lib/supabase";
@@ -65,7 +66,7 @@ const reg = z
     region,
     requested_role: z.enum(memberRoles),
     motivation: z.string().trim().min(10).max(5000),
-    password: z.string().min(12).max(128),
+    password: z.string().min(8).max(128).refine(passwordValid, {message: passwordHelp.fr + " / " + passwordHelp.en}),
     confirmation: z.string(),
     terms: z.literal(true),
     locale: z.enum(["fr", "en"]),
@@ -411,7 +412,7 @@ export async function POST(req: NextRequest) {
     } else if (op === "reset") {
       const d = z
         .object({
-          password: z.string().min(12).max(128),
+          password: z.string().min(8).max(128).refine(passwordValid, {message: passwordHelp.fr + " / " + passwordHelp.en}),
           confirmation: z.string(),
         })
         .refine((x) => x.password === x.confirmation)
