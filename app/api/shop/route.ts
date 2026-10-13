@@ -11,7 +11,7 @@ export async function POST(req:NextRequest){
  if(req.headers.get('content-type')?.includes('multipart/form-data')){
  const staff=['admin','super_admin'].includes(a.p.role);
  if(!staff){const {data:s}=await a.db.from('shop_sellers').select('status').eq('user_id',a.p.id).single();if(a.p.role!=='membre'||s?.status!=='approved')return NextResponse.json({error:'Activation vendeur requise'},{status:403});}
- const form=await req.formData();const file=form.get('file');if(!(file instanceof File)||file.size>4194304||file.size===0)return NextResponse.json({error:'Photo invalide (4 Mo maximum)'},{status:400});
+ const form=await req.formData();const file=form.get('file');if(!(file instanceof File)||file.size>4194304||file.size===0)return NextResponse.json({error:'Photo invalide (250 Ko maximum)'},{status:400});
  const bytes=Buffer.from(await file.arrayBuffer());const webp=bytes.subarray(0,4).toString()==='RIFF'&&bytes.subarray(8,12).toString()==='WEBP';if(!webp)return NextResponse.json({error:'Photo WebP optimisée requise'},{status:400});
  const path=`${a.p.id}/${crypto.randomUUID()}.webp`;const {error}=await a.db.storage.from('shop-photos').upload(path,bytes,{contentType:'image/webp',cacheControl:'31536000',upsert:false});if(error)return NextResponse.json({error:'Envoi de la photo impossible'},{status:400});return NextResponse.json({path});
  }
