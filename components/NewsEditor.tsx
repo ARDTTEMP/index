@@ -107,8 +107,8 @@ export default function NewsEditor({
         )}
         <p className="form-note">
           {t(
-            "La version anglaise est facultative. Sans traduction, le texte français est repris.",
-            "English is optional. Without a translation, the French text is used.",
+            "Les versions française et anglaise sont obligatoires.",
+            "French and English versions are required.",
           )}
         </p>
         <form
@@ -190,9 +190,10 @@ export default function NewsEditor({
                 />
               </label>
               <label>
-                {t("Titre en anglais (facultatif)", "English title (optional)")}
+                {t("Titre en anglais (obligatoire)", "English title (required)")}
                 <input
                   name="title_en"
+                  required
                   minLength={2}
                   maxLength={200}
                   defaultValue={editing?.title_en || ""}
@@ -212,11 +213,12 @@ export default function NewsEditor({
             </label>
             <label>
               {t(
-                "Article en anglais (facultatif)",
-                "English article (optional)",
+                "Article en anglais (obligatoire)",
+                "English article (required)",
               )}
               <textarea
                 name="content_en"
+                required
                 rows={12}
                 minLength={10}
                 maxLength={50000}

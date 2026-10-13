@@ -186,6 +186,7 @@ export default function Workspace({
     "admin/requests": t("Demandes d’adhésion", "Membership applications"),
     "admin/reports": t("Rapports à examiner", "Report reviews"),
     "admin/members": t("Comptes & rôles", "Accounts & roles"),
+    "admin/pages": t("Gestion des pages", "Page management"),
     "admin/news": t("Actualités bilingues", "Bilingual news"),
     "admin/media": t("Photos & vidéos", "Photos & videos"),
     "admin/donations": t("Suivi des dons", "Donation tracking"),
@@ -214,6 +215,7 @@ export default function Workspace({
     "admin/requests": ClipboardCheck,
     "admin/reports": FileText,
     "admin/members": UsersRound,
+    "admin/pages": FileText,
     "admin/news": Newspaper,
     "admin/media": ImageIcon,
     "admin/donations": HeartHandshake,
@@ -276,7 +278,7 @@ export default function Workspace({
           },
           {
             title: t("Publications & terrain", "Publications & fieldwork"),
-            items: ["admin/news", "admin/media", "admin/reports"],
+            items: ["admin/pages", "admin/news", "admin/media", "admin/reports"],
           },
           {
             title: t("Finances & récompenses", "Finance & rewards"),

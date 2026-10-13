@@ -71,8 +71,8 @@ export default function MediaManager({
         </p>
         <p>
           {t(
-            "Sans version anglaise, le texte français sera repris.",
-            "Without an English version, the French text will be reused.",
+            "Les versions française et anglaise sont obligatoires.",
+            "French and English versions are required.",
           )}
         </p>
         <form
@@ -241,18 +241,18 @@ export default function MediaManager({
               <input name="title_fr" required minLength={2} maxLength={200} />
             </label>
             <label>
-              {t("Titre en anglais (facultatif)", "English title (optional)")}
-              <input name="title_en" minLength={2} maxLength={200} />
+              {t("Titre en anglais (obligatoire)", "English title (required)")}
+              <input name="title_en" required minLength={2} maxLength={200} />
             </label>
           </div>
           <div className="form-grid">
             <label>
               {t("Description en français", "French description")}
-              <textarea name="description_fr" maxLength={2000} />
+              <textarea name="description_fr" required minLength={2} maxLength={2000} />
             </label>
             <label>
               {t("Description en anglais", "English description")}
-              <textarea name="description_en" maxLength={2000} />
+              <textarea name="description_en" required minLength={2} maxLength={2000} />
             </label>
           </div>
           {progress && (
