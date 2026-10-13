@@ -458,7 +458,13 @@ export async function POST(req: NextRequest) {
           amount: z.coerce.number().int().min(100).max(100000000),
           message: z.string().max(2000),
           is_monthly: z.boolean(),
-          payment_method: z.literal("notchpay"),
+          payment_method: z.enum([
+            "notchpay",
+            "smobilpay",
+            "mobile_money",
+            "bank_transfer",
+            "cash",
+          ]),
         })
         .parse(b);
       if (d.payment_method === "notchpay" && !notchConfigured())
@@ -670,8 +676,20 @@ export async function POST(req: NextRequest) {
       }
       switch (op) {
         case "create_dues":
+          result = { id: await rpc("create_dues_payment", {}) };
+          break;
         case "submit_dues":
-          throw new ForbiddenError("Payments must use Notch Pay");
+          await rpc("submit_dues_payment", {
+            p_id: uuid.parse(b.id),
+            p_method: z
+              .enum(["mobile_money", "bank_transfer", "cash", "online"])
+              .parse(b.method),
+            p_reference: z.string().trim().min(3).max(200).parse(b.reference),
+            p_receipt_path:
+              z.string().max(500).nullable().optional().parse(b.receipt_path) ||
+              null,
+          });
+          break;
         case "review_dues":
           await rpc("review_dues_payment", {
             p_id: uuid.parse(b.id),
@@ -688,17 +706,23 @@ export async function POST(req: NextRequest) {
             .object({
               amount: z.coerce.number().int().min(100).max(100000000),
               period: z.string().trim().min(1).max(64),
+              instructions_fr: z.string().trim().min(10).max(5000),
+              instructions_en: z
+                .union([z.string().trim().min(10).max(5000), z.literal("")])
+                .default(""),
+              checkout_url: z.union([
+                z.url().refine((value) => new URL(value).protocol === "https:"),
+                z.literal(""),
+              ]),
             })
             .parse(b);
           const { error } = await db
             .from("dues_settings")
             .update({
               ...settings,
-              instructions_fr:
-                "Paiement sécurisé et confirmation automatique avec Notch Pay.",
               instructions_en:
-                "Secure payment and automatic confirmation with Notch Pay.",
-              checkout_url: null,
+                settings.instructions_en || settings.instructions_fr,
+              checkout_url: settings.checkout_url || null,
               updated_at: new Date().toISOString(),
             })
             .eq("id", true)
