@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { PASSWORD_PATTERN, passwordHelp } from "@/lib/password";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, CheckCircle2, ArrowLeft } from "lucide-react";
 import {
@@ -44,7 +45,10 @@ function PasswordField({
           name={name}
           type={visible ? "text" : "password"}
           required={required}
-          minLength={fresh ? 12 : undefined}
+          minLength={fresh ? 8 : undefined}
+          pattern={fresh ? PASSWORD_PATTERN : undefined}
+          title={fresh ? passwordHelp[l] : undefined}
+          aria-describedby={fresh ? fieldId + "-help" : undefined}
           maxLength={128}
           autoComplete={fresh ? "new-password" : "current-password"}
         />
@@ -62,6 +66,7 @@ function PasswordField({
           {visible ? <EyeOff size={19} /> : <Eye size={19} />}
         </button>
       </span>
+      {fresh && <small id={fieldId + "-help"}>{passwordHelp[l]}</small>}
     </div>
   );
 }
@@ -362,8 +367,8 @@ export default function PublicForm({
                 <div className="form-grid">
                   <PasswordField
                     label={t(
-                      "Mot de passe — 12 caractères minimum",
-                      "Password — at least 12 characters",
+                      "Mot de passe — 8 caractères minimum",
+                      "Password — at least 8 characters",
                     )}
                     name="password"
                     locale={l}
@@ -506,28 +511,13 @@ export default function PublicForm({
                   minLength={6}
                 />
               </label>
-              <label>
-                {t("Moyen de paiement souhaité", "Preferred payment method")}
-                <select name="payment_method">
-                  {notchEnabled && (
-                    <option value="notchpay">
-                      {t(
-                        "Payer en ligne — Notch Pay",
-                        "Pay online — Notch Pay",
-                      )}
-                    </option>
-                  )}
-                  <option value="mobile_money">
-                    Mobile Money (MTN / Orange)
-                  </option>
-                  <option value="bank_transfer">
-                    {t("Virement bancaire", "Bank transfer")}
-                  </option>
-                  <option value="cash">
-                    {t("Espèces au siège", "Cash at our office")}
-                  </option>
-                </select>
-              </label>
+              <input type="hidden" name="payment_method" value="notchpay" />
+              <p>
+                {t(
+                  "Paiement sécurisé avec Notch Pay",
+                  "Secure payment with Notch Pay",
+                )}
+              </p>
               <label>
                 {t("Votre message (facultatif)", "Your message (optional)")}
                 <textarea name="message" maxLength={2000} />
@@ -535,11 +525,11 @@ export default function PublicForm({
               <p className="form-note">
                 {t(
                   notchEnabled
-                    ? "Avec Notch Pay, vous serez dirigé vers la page de paiement. Votre don sera confirmé après vérification. Les autres moyens restent disponibles auprès de notre équipe."
-                    : "Le paiement en ligne est en cours de configuration. Votre intention de don sera enregistrée en attente ; notre équipe vous indiquera comment régler.",
+                    ? "Avec Notch Pay, vous serez dirigé vers la page de paiement. Votre don sera confirmé après vérification. "
+                    : "Le paiement Notch Pay est momentanément indisponible. Réessayez plus tard.",
                   notchEnabled
-                    ? "Notch Pay takes you to the payment page. Your donation is confirmed after verification. Other payment methods remain available through our team."
-                    : "Online payment is being configured. Your pledge will be recorded as pending; our team will provide payment instructions.",
+                    ? "Notch Pay takes you to the payment page. Your donation is confirmed after verification. "
+                    : "Notch Pay is temporarily unavailable. Please try again later.",
                 )}
               </p>
             </>
@@ -572,7 +562,10 @@ export default function PublicForm({
                 {t("Retour", "Back")}
               </button>
             )}
-            <button className="button" disabled={busy}>
+            <button
+              className="button"
+              disabled={busy || (kind === "donate" && !notchEnabled)}
+            >
               {busy
                 ? t("En cours…", "Please wait…")
                 : kind === "login"
@@ -582,7 +575,7 @@ export default function PublicForm({
                       ? t("Continuer", "Continue")
                       : t("Envoyer ma demande", "Submit application")
                     : kind === "donate"
-                      ? t("Enregistrer mon don", "Record my donation")
+                      ? t("Payer avec Notch Pay", "Pay with Notch Pay")
                       : kind === "forgot"
                         ? t("Recevoir le lien", "Send reset link")
                         : kind === "reset"

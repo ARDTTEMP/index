@@ -1,4 +1,5 @@
 "use client";
+import { PhotoHelp } from "./PhotoHelp";
 
 import { useRef, useState, type FormEvent } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
@@ -235,6 +236,7 @@ export default function MediaManager({
               required
             />
           </label>
+          <PhotoHelp l={l} />
           <div className="form-grid">
             <label>
               {t("Titre en français", "French title")}
@@ -337,6 +339,7 @@ export async function optimizeImage(
   source: File,
   maxEdge = 1920,
   quality = 0.82,
+  maxBytes = 4 * 1024 * 1024,
 ): Promise<File> {
   if (source.size > 30 * 1024 * 1024)
     throw new Error("Photo source trop lourde (30 Mo maximum).");
@@ -383,10 +386,22 @@ export async function optimizeImage(
   let blob = await encode(quality);
   for (
     let nextQuality = quality - 0.1;
-    blob.size > 4 * 1024 * 1024 && nextQuality >= 0.42;
+    blob.size > maxBytes && nextQuality >= 0.52;
     nextQuality -= 0.1
   )
     blob = await encode(nextQuality);
+  while (blob.size > maxBytes && Math.max(canvas.width, canvas.height) > 512) {
+    const smaller = document.createElement("canvas");
+    smaller.width = Math.max(1, Math.round(canvas.width * 0.85));
+    smaller.height = Math.max(1, Math.round(canvas.height * 0.85));
+    const smallerContext = smaller.getContext("2d");
+    if (!smallerContext) throw new Error("Compression impossible");
+    smallerContext.drawImage(canvas, 0, 0, smaller.width, smaller.height);
+    canvas.width = smaller.width; canvas.height = smaller.height;
+    context.drawImage(smaller, 0, 0);
+    blob = await encode(0.62);
+  }
+  if (blob.size > maxBytes) throw new Error("Photo trop détaillée : choisissez une autre photo / Photo too detailed: choose another photo");
   if (blob.type !== "image/webp")
     throw new Error("Conversion WebP indisponible dans ce navigateur.");
   if (blob.size > 4 * 1024 * 1024)

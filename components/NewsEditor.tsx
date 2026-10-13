@@ -1,4 +1,5 @@
 "use client";
+import { PhotoHelp } from "./PhotoHelp";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { optimizeImage, uploadPublicPhoto } from "./MediaManager";
@@ -156,6 +157,7 @@ export default function NewsEditor({
             }
           }}
         >
+          <PhotoHelp l={l} />
           <fieldset disabled={busy} className="news-fields">
             <label className="news-cover-picker">
               {t("Photo de couverture", "Cover photo")}
