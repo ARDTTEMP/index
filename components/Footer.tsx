@@ -25,6 +25,7 @@ export default function Footer({ locale: l }: { locale: Locale }) {
         <div>
           <h3>{t('Navigation', 'Navigation')}</h3>
           <ul className="footer-links">
+            <li><a href="/shop" className="footer-shop">Shop <span aria-hidden="true">↗</span></a></li>
             <li><a href="/about">{t('Qui sommes-nous', 'About us')}</a></li>
             <li><a href="/activities">{t('Nos activités', 'Our activities')}</a></li>
             <li><a href="/news">{t('Actualités', 'News')}</a></li>

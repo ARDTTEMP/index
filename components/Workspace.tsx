@@ -175,6 +175,7 @@ export default function Workspace({
   const labels: Record<string, string> = {
     overview: t("Mon engagement", "My contribution"),
     profile: t("Mon profil", "My profile"),
+    shop: "Shop",
     dues: t("Ma cotisation", "My membership fee"),
     "admin/dues": t("Cotisations", "Membership payments"),
     reports: t("Mes rapports", "My reports"),
@@ -194,12 +195,14 @@ export default function Workspace({
   const memberNav = [
     "overview",
     "profile",
+    ...(profile.status === "approved" && ["membre", "admin", "super_admin"].includes(profile.role) ? ["shop"] : []),
     "dues",
     "reports",
     "groups",
     "rewards",
   ];
   const navIcons: Record<string, typeof Leaf> = {
+    shop: Leaf,
     overview: LayoutDashboard,
     profile: UserRound,
     reports: FileText,
