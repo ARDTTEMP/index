@@ -16,6 +16,8 @@ do $$declare b jsonb; r bigint; denied boolean:=false;begin
  b:=jsonb_set(b,'{0,en}','"English text"');
  perform public.save_managed_page('/about',b,true,r);r:=r+1;
  begin perform public.save_managed_page('/about',b,true,r-1);raise exception 'FAILED concurrent overwrite';exception when serialization_failure then null;end;
+ denied:=false;begin perform public.save_managed_page('/about',b,true,null);exception when raise_exception then denied:=true;end;if not denied then raise exception 'FAILED null revision bypass';end if;
+ denied:=false;begin perform public.save_managed_page('/about',null,false,r);exception when raise_exception then denied:=true;end;if not denied then raise exception 'FAILED null document bypass';end if;
  b:=jsonb_set(b,'{0,font}','"unsafe-font"');denied:=false;
  begin perform public.save_managed_page('/about',b,true,r);exception when raise_exception then denied:=true;end;
  if not denied then raise exception 'FAILED format bypass';end if;
