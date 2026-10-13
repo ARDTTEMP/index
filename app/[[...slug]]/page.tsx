@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
+ const { slug = [] } = await params; const path = "/" + slug.join("/");
+ const titles: Record<string,string> = { "/": "ARDTTEMP — Recyclage des plastiques et solidarité au Cameroun", "/about": "Qui sommes-nous", "/activities": "Nos activités de transformation écologique", "/news": "Actualités", "/gallery": "ARDTTEMP en image", "/donate": "Soutenir nos actions", "/join": "Rejoindre ARDTTEMP", "/contact": "Contact à Yaoundé" };
+ const privatePage = ["/login", "/register", "/forgot-password", "/reset-password"].includes(path);
+ return { title: titles[path] || "ARDTTEMP", alternates: { canonical: path }, ...(privatePage ? { robots: { index: false, follow: true } } : {}) };
+}
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
