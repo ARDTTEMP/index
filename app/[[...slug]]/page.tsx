@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }): Promise<Metadata> {
  const { slug = [] } = await params; const path = "/" + slug.join("/");
- const titles: Record<string,string> = { "/": "ARDTTEMP — Recyclage et solidarité au Cameroun", "/about": "Qui sommes-nous", "/activities": "Nos activités de transformation écologique", "/news": "Actualités", "/gallery": "ARDTTEMP en image", "/donate": "Soutenir nos actions", "/join": "Rejoindre ARDTTEMP", "/contact": "Contact à Yaoundé" };
+ const titles: Record<string,string> = { "/": "ARDTTEMP — Recyclage et solidarité au Cameroun", "/about": "Qui sommes-nous", "/activities": "Nos activités de transformation écologique", "/news": "Actualités", "/gallery": "Galerie", "/donate": "Soutenir nos actions", "/join": "Rejoindre ARDTTEMP", "/contact": "Contact à Yaoundé" };
  const privatePage = ["/login", "/register", "/forgot-password", "/reset-password"].includes(path);
  return { title: path === "/" ? { absolute: titles[path] } : titles[path] || "ARDTTEMP", alternates: { canonical: path }, ...(privatePage ? { robots: { index: false, follow: true } } : {}) };
 }
@@ -132,7 +132,7 @@ export default async function PublicPage({
           <div className="container gallery-intro-grid">
             <div>
               <p className="eyebrow">ARDTTEMP · {t("Sur le terrain", "On the ground")}</p>
-              <h1>{t("ARDTTEMP en image", "ARDTTEMP in pictures")}</h1>
+              <h1>{t("Galerie", "Gallery")}</h1>
               <p className="lead">
                 {t(
                   "Découvrez nos collectes, nos équipes et les moments d’engagement partagés sur le terrain.",
@@ -303,7 +303,7 @@ export default async function PublicPage({
         </section>
         <section className="section field-photo-section">
           <div className="container">
-            <div className="section-head"><div><p className="eyebrow">{t("Sur le terrain", "On the ground")}</p><h2>{t("L’engagement prend vie.", "Commitment comes to life.")}</h2></div><Link className="link" href="/gallery">{t("ARDTTEMP en image →", "ARDTTEMP in pictures →")}</Link></div>
+            <div className="section-head"><div><p className="eyebrow">{t("Sur le terrain", "On the ground")}</p><h2>{t("L’engagement prend vie.", "Commitment comes to life.")}</h2></div><Link className="link" href="/gallery">{t("Galerie →", "Gallery →")}</Link></div>
             <FieldPhotos l={l} limit={3} />
           </div>
         </section>
