@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     default: "ARDTTEMP — Transformons notre Environnement Ensemble",
     template: "%s | ARDTTEMP",
   },
+  applicationName: "ARDTTEMP",
+  openGraph: { type: "website", siteName: "ARDTTEMP", locale: "fr_CM", title: "ARDTTEMP — Transformons notre Environnement Ensemble", description: "Recyclage des plastiques, éducation et solidarité au Cameroun.", images: [{ url: "/logo.png", alt: "ARDTTEMP" }] },
+  twitter: { card: "summary", title: "ARDTTEMP", images: ["/logo.png"] },
   description:
     "Association camerounaise de recherche et de transformation écologique des matières plastiques. Collecte, éducation et solidarité.",
 };
