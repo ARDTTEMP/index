@@ -421,7 +421,7 @@ async function ExistingPublicPage({
       login: t("Retrouvez votre espace personnel et suivez votre engagement.", "Access your personal space and follow your contribution."),
       register: t("Rejoignez ARDTTEMP en tant que Membre, Bénévole ou Volontaire.", "Join ARDTTEMP as a Member, Volunteer or Field volunteer."),
       forgot: t("Indiquez l’adresse e-mail de votre compte pour recevoir un lien de récupération.", "Enter your account email to receive a recovery link."),
-      reset: t("Choisissez un mot de passe personnel d’au moins 12 caractères.", "Choose a personal password of at least 12 characters."),
+      reset: t("Choisissez un mot de passe d’au moins 8 caractères avec majuscule, minuscule, chiffre et symbole.", "Choose a password of at least 8 characters with uppercase, lowercase, a digit and a symbol."),
     };
     const resetUser = kind === "reset" ? await (await supabase()).auth.getUser() : null;
     const illustrated = kind === "login" || kind === "register";
