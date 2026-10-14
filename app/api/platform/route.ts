@@ -590,8 +590,8 @@ export async function POST(req: NextRequest) {
             media_type: z.enum(["image", "video"]),
             title_fr: short,
             title_en: short,
-            description_fr: z.string().trim().min(2).max(2000),
-            description_en: z.string().trim().min(2).max(2000),
+            description_fr: z.string().trim().min(150).max(2000),
+            description_en: z.string().trim().min(150).max(2000),
             object_path: z.string().max(500),
             poster_path: z.string().max(500).nullable().optional(),
           })
@@ -756,7 +756,7 @@ export async function POST(req: NextRequest) {
           const d = z
             .object({
               title: short,
-              description: z.string().trim().min(10).max(10000),
+              description: z.string().trim().min(1500).max(10000),
               activity_date: z.iso.date(),
               location: short,
               photo_urls: z.array(z.string().max(500)).max(6),
@@ -956,7 +956,7 @@ export async function POST(req: NextRequest) {
           const d = z
             .object({
               name: short,
-              description: z.string().max(2000),
+              description: z.string().trim().min(150).max(2000),
               role: z.enum(["all", "membre", "benevole", "volontaire"]),
               city: z.string().max(100),
               region: z.union([region, z.literal("")]),
