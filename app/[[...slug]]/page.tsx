@@ -1,3 +1,4 @@
+import NewsEngagement,{NewsCountSummary} from "@/components/NewsEngagement";
 import PageBlocks from "@/components/PageBlocks";
 import { editablePaths } from "@/lib/page-editor";
 import { managedPage } from "@/lib/managed-pages";
@@ -457,6 +458,7 @@ async function ExistingPublicPage({
       .eq("published", true)
       .single();
     if (error || !n) notFound();
+    const {data:engagement}=await db.from("news_engagement").select("views,likes,shares").eq("news_id",n.id).maybeSingle();
     return (
       <>
         <section className="page-intro">
@@ -464,6 +466,7 @@ async function ExistingPublicPage({
             <p className="eyebrow">{t("Actualités", "News")}</p>
             <h1>{n["title_" + l]}</h1>
             <NewsByline n={n} l={l} />
+            <NewsEngagement id={n.id} title={n["title_"+l]} initial={engagement||undefined} l={l}/>
           </div>
         </section>
         <article className="section">
@@ -805,6 +808,8 @@ async function News({ l, page }: { l: Locale; page:number }) {
         {(count || 0) > 0 ? <Link className="button outline" href="/news">{text(l,"Revenir aux actualités","Back to news")}</Link> : text(l,"Nos prochaines actualités seront publiées ici.","Our next updates will appear here.")}
       </div>
     );
+  const {data:engagementRows}=await db.from("news_engagement").select("news_id,views,likes,shares").in("news_id",data.map(n=>n.id));
+  const engagementById=new Map((engagementRows||[]).map(row=>[row.news_id,row]));
   return (
     <><div className="grid three">
       {data.map((n) => (
@@ -815,6 +820,7 @@ async function News({ l, page }: { l: Locale; page:number }) {
           <p>
             {n[("content_" + l) as "content_fr" | "content_en"].slice(0, 180)}…
           </p>
+          <NewsCountSummary counts={engagementById.get(n.id)} l={l}/>
           <div className="actions">
             <Link className="link" href={"/news/" + n.id}>
               {text(l, "Lire l’article", "Read article")}
