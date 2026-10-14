@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import ShopBalance from "./ShopBalance";
 import {
   useCallback,
   useEffect,
@@ -45,10 +46,12 @@ import {
 type Row = Record<string, any>;
 export default function Workspace({
   initialProfile,
+  sellerActive = false,
   view,
   locale: l,
 }: {
   initialProfile: Profile;
+  sellerActive?: boolean;
   view: string;
   locale: Locale;
 }) {
@@ -474,6 +477,7 @@ export default function Workspace({
           <>
             {view === "overview" && (
               <>
+                {sellerActive && <ShopBalance l={l}/>}
                 <div
                   className={
                     profile.role === "super_admin" ? "grid" : "grid two"
@@ -682,8 +686,8 @@ export default function Workspace({
                 </label>
                 <p className="form-note">
                   {t(
-                    "Le rôle, le matricule, le statut et les points sont gérés par l’association.",
-                    "Your role, membership ID, status and points are managed by the association.",
+                    profile.role === "super_admin" ? "Le rôle, le matricule et le statut sont protégés." : "Le rôle, le matricule, le statut et les points sont gérés par l’association.",
+                    profile.role === "super_admin" ? "Your role, membership ID and status are protected." : "Your role, membership ID, status and points are managed by the association.",
                   )}
                 </p>
               </OperationForm>
@@ -1776,7 +1780,7 @@ function Members({
               {r.city} · {r.region}
             </span>
             <span>{r.matricule}</span>
-            <span>{r.points} pts</span>
+            {r.role!=="super_admin"&&<span>{r.points} pts</span>}
           </div>
           {status(r.status)}
           {r.id !== profile.id &&

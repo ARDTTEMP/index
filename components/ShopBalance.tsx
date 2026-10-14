@@ -1,0 +1,10 @@
+'use client';
+import {useEffect,useState} from 'react';
+import type {Locale} from '@/lib/domain';
+import {shopMoney} from './ShopCatalog';
+type Balance={pending:number;available:number;paid_out:number;sales_count:number;review_count:number};
+export default function ShopBalance({l='fr'}:{l?:Locale}){
+ const [balance,setBalance]=useState<Balance|null>(null);const [error,setError]=useState(false);const t=(fr:string,en:string)=>l==='fr'?fr:en;
+ useEffect(()=>{let alive=true;let busy=false;const refresh=async()=>{if(busy||document.hidden)return;busy=true;try{const r=await fetch('/api/shop/balance',{cache:'no-store'});if(!r.ok)throw Error();const d=await r.json();if(alive){setBalance(d);setError(false);}}catch{if(alive)setError(true);}finally{busy=false;}};void refresh();const timer=setInterval(refresh,30000);window.addEventListener('focus',refresh);return()=>{alive=false;clearInterval(timer);window.removeEventListener('focus',refresh);};},[]);
+ return <section className="card shop-balance" aria-labelledby="shop-balance-title"><h2 id="shop-balance-title">{t('Mon solde vendeur','My seller balance')}</h2>{error&&<p role="alert">{t('Actualisation indisponible. Le dernier solde affiché est conservé.','Refresh unavailable. The last displayed balance is retained.')}</p>}<div className="shop-balance-grid" aria-live="polite" aria-atomic="true">{[[t('Disponible au reversement','Available for payout'),balance?.available],[t('En attente de livraison','Awaiting delivery'),balance?.pending],[t('Déjà reversé','Already paid out'),balance?.paid_out]].map(([label,value])=><div key={String(label)}><span>{label}</span><strong>{value===undefined?'—':shopMoney(Number(value))}</strong></div>)}</div><p>{t('Votre part : 93 % du total payé, livraison incluse. Disponible après confirmation de livraison.','Your share: 93% of the amount paid, delivery included. Available after delivery confirmation.')}</p>{balance&&<small>{balance.sales_count} {t('vente(s) payée(s)','paid sale(s)')}{balance.review_count>0?` · ${balance.review_count} ${t('opération(s) à vérifier','transaction(s) requiring review')}`:''}</small>}</section>;
+}

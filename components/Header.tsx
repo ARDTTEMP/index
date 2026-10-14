@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X, UserRound, ArrowUpRight } from "lucide-react";
 import { type Locale, text } from "@/lib/domain";
-export default function Header({ locale: l }: { locale: Locale }) {
+export default function Header({ locale: l, shopDomain=false }: { locale: Locale; shopDomain?:boolean }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const path = usePathname();
   const t = (fr: string, en: string) => text(l, fr, en);
+  const site=(path:string)=>shopDomain?`https://www.ardttemp.org${path}`:path;
   const nav = [
     ["/", t("Accueil", "Home")],
     ["/about", t("Qui sommes-nous", "About us")],
@@ -35,11 +36,11 @@ export default function Header({ locale: l }: { locale: Locale }) {
         {t("Aller au contenu", "Skip to content")}
       </a>
       <div className="topbar">
-        <Link href="/dashboard" className="member-entry"><UserRound size={15} aria-hidden="true" /><span>{t("Espace membre", "Member area")}</span><ArrowUpRight size={14} aria-hidden="true" /></Link>
+        <Link href={site("/dashboard")} className="member-entry"><UserRound size={15} aria-hidden="true" /><span>{t("Espace membre", "Member area")}</span><ArrowUpRight size={14} aria-hidden="true" /></Link>
         <a href="tel:+237655508511">+237 655 50 85 11</a>
       </div>
       <header className="header">
-        <Link href="/" className="brand">
+        <Link href={site("/")} className="brand">
           <Image src="/logo.png" alt="ARDTTEMP" width={52} height={52} />
           <span>
             <strong>ARDTTEMP</strong>
@@ -66,15 +67,15 @@ export default function Header({ locale: l }: { locale: Locale }) {
           {nav.map(([href, label]) => (
             <Link
               key={href}
-              href={href}
-              aria-current={path === href ? "page" : undefined}
+              href={site(href)}
+              aria-current={!shopDomain && path === href ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               {label}
             </Link>
           ))}
           <Link
-            href="/gallery"
+            href={site("/gallery")}
             aria-current={path === "/gallery" ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
@@ -94,7 +95,7 @@ export default function Header({ locale: l }: { locale: Locale }) {
               </button>
             ))}
           </div>
-          <Link className="button small" href="/donate">
+          <Link className="button small" href={site("/donate")}>
             {t("Faire un don", "Donate")}
           </Link>
         </div>
