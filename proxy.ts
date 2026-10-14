@@ -1,6 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
+  const shopHost=request.nextUrl.hostname === "shop.ardttemp.org";
+  if(shopHost){
+    const path=request.nextUrl.pathname;
+    if(path==="/shop"||path==="/shop/")return NextResponse.redirect(new URL("/"+request.nextUrl.search,request.url));
+    if(path==="/"){
+      const destination=request.nextUrl.clone();destination.pathname="/shop";
+      const rewritten=NextResponse.rewrite(destination);
+      const lang=request.nextUrl.searchParams.get("lang");if(lang==="fr"||lang==="en")rewritten.cookies.set("ardttemp-locale",lang,{sameSite:"lax",path:"/",maxAge:31536000});
+      rewritten.headers.set("Cache-Control","private, no-store");return rewritten;
+    }
+    // Keep authentication and payments on the established site and session.
+    if(!path.startsWith("/_next/")&&path!=="/api/locale"&&!/\.(?:png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/.test(path))return NextResponse.redirect(new URL(path+request.nextUrl.search,"https://www.ardttemp.org"));
+  }
   let response = NextResponse.next({ request });
   const language = request.nextUrl.searchParams.get("lang");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
