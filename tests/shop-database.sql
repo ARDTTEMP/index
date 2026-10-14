@@ -38,6 +38,9 @@ select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002'
 set local role authenticated;
 do $$declare product_id uuid;begin
  select id into product_id from public.shop_products where title='Association test';
+ begin perform public.shop_action('set_promotion',jsonb_build_object('id',(select id from public.shop_products where title='Produit test'),'promotion_price',6000));raise exception 'FAILED admin edited another authors promotion';exception when insufficient_privilege then null;end;
+ begin perform public.shop_action('update_product',jsonb_build_object('id',(select id from public.shop_products where title='Produit test')));raise exception 'FAILED admin edited another authors product';exception when insufficient_privilege then null;end;
+
  perform public.shop_action('set_promotion',jsonb_build_object('id',product_id,'promotion_price',6000));
  if (select promotion_price from public.shop_products where id=product_id)<>6000 then raise exception 'FAILED promotion not saved';end if;
  begin perform public.shop_action('set_promotion',jsonb_build_object('id',product_id,'promotion_price',9000));raise exception 'FAILED invalid promotion';exception when check_violation then null;end;
@@ -50,10 +53,23 @@ reset role;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 do $$begin
- begin perform public.shop_action('set_promotion',jsonb_build_object('id',(select id from public.shop_products where title='Produit test'),'promotion_price',6000));raise exception 'FAILED member bypass promotion approval';exception when insufficient_privilege then null;end;
+ perform public.shop_action('set_promotion',jsonb_build_object('id',(select id from public.shop_products where title='Produit test'),'promotion_price',6000));
+ if not exists(select 1 from public.shop_products where title='Produit test' and promotion_price=6000 and status='pending') then raise exception 'FAILED owner promotion moderation';end if;
+ perform public.shop_action('update_product',(select to_jsonb(p) from public.shop_products p where title='Produit test')||jsonb_build_object('title','Produit test','stock',4,'status','published','association_product',true,'owner_id','20000000-0000-4000-8000-000000000002'));
+ if not exists(select 1 from public.shop_products where title='Produit test' and stock=4 and status='pending' and owner_id=auth.uid() and not association_product) then raise exception 'FAILED owner update privilege spoof';end if;
+ begin perform public.shop_action('delete_product',jsonb_build_object('id',(select id from public.shop_products where title='Produit test')));raise exception 'FAILED member delete';exception when insufficient_privilege then null;end;
+
  begin insert into public.reports(user_id,title,description,activity_date,location) values(auth.uid(),'Rapport test',repeat('R',1499),current_date,'Yaoundé');raise exception 'FAILED short report';exception when check_violation then null;end;
  insert into public.reports(user_id,title,description,activity_date,location) values(auth.uid(),'Rapport test',repeat('R',1500),current_date,'Yaoundé');
 end$$;
+reset role;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000002',true);
+set local role authenticated;
+select public.shop_action('review_product',jsonb_build_object('id',(select id from public.shop_products where title='Produit test'),'status','archived'));
+do $$begin if exists(select 1 from public.shop_products where title='Produit test' and status='published') then raise exception 'FAILED admin archive';end if;end$$;
+select public.shop_action('review_product',jsonb_build_object('id',(select id from public.shop_products where title='Produit test'),'status','published'));
+select public.shop_action('delete_product',jsonb_build_object('id',(select id from public.shop_products where title='Boundary product')));
+do $$begin if exists(select 1 from public.shop_products where title='Boundary product') then raise exception 'FAILED admin delete';end if;end$$;
 reset role;
 select set_config('request.jwt.claim.sub','',true);
 set local role anon;

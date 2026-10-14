@@ -46,8 +46,12 @@ export default async function Dashboard({
     !/^groups\/[0-9a-f-]{36}$/.test(view)
   )
     notFound();
+  const seller = view === "overview" && p.role === "membre" && p.status === "approved"
+    ? (await db.from("shop_sellers").select("status").eq("user_id",p.id).maybeSingle()).data
+    : null;
   return (
     <Workspace
+      sellerActive={!!seller && ["approved","suspended"].includes(seller.status)}
       initialProfile={p as Profile}
       view={view === "admin" ? "admin/overview" : view}
       locale={await locale()}

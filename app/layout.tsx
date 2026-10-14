@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import {headers} from "next/headers";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SiteFrame from "@/components/SiteFrame";
@@ -22,10 +23,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const l = await locale();
+  const shopDomain=(await headers()).get("host")?.split(":")[0] === "shop.ardttemp.org";
   return (
     <html lang={l}>
       <body>
-        <SiteFrame header={<Header locale={l} />} footer={<Footer locale={l} />}>
+        <SiteFrame shopDomain={shopDomain} header={<Header locale={l} shopDomain={shopDomain} />} footer={<Footer locale={l} />}>
           {children}
         </SiteFrame>
       </body>

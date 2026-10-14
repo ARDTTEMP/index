@@ -65,8 +65,8 @@ export default function PaymentReturn() {
                     "Test successful. No real payment or points awarded.",
                   )
                 : t(
-                    "Paiement confirmé. Merci pour votre contribution.",
-                    "Payment confirmed. Thank you for your contribution.",
+                    result.kind === "shop" ? "Paiement confirmé. Votre commande est en préparation." : "Paiement confirmé. Merci pour votre contribution.",
+                    result.kind === "shop" ? "Payment confirmed. Your order is being prepared." : "Payment confirmed. Thank you for your contribution.",
                   )}
             </p>
           ) : result ? (
@@ -89,7 +89,7 @@ export default function PaymentReturn() {
           </button>
         )}
         <p>
-          <Link href={result?.kind === "dues" ? "/dashboard/dues" : "/donate"}>
+          <Link href={result?.kind === "shop" ? "/shop" : result?.kind === "dues" ? "/dashboard/dues" : "/donate"}>
             {t("Continuer sur ARDTTEMP", "Continue on ARDTTEMP")}
           </Link>
         </p>

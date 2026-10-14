@@ -8,13 +8,13 @@ import { ArrowLeft } from "lucide-react";
 import { text, type Locale } from "@/lib/domain";
 
 const authPaths = new Set(["/login", "/register", "/forgot-password", "/reset-password"]);
-export default function SiteFrame({ children, header, footer }: {
-  children: ReactNode; header: ReactNode; footer: ReactNode;
+export default function SiteFrame({ children, header, footer, shopDomain=false }: {
+  children: ReactNode; header: ReactNode; footer: ReactNode; shopDomain?: boolean;
 }) {
   const path = usePathname().replace(/\/$/, "") || "/";
   if (authPaths.has(path)) return <main id="main" className="auth-screen">{children}</main>;
   if (path === "/dashboard" || path.startsWith("/dashboard/") || path === "/admin" || path.startsWith("/admin/")) return <main id="main" className="member-screen">{children}</main>;
-  return <>{header}<main id="main">{children}</main>{path === "/shop" || path.startsWith("/shop/") ? null : footer}</>;
+  return <>{header}<main id="main">{children}</main>{shopDomain || path === "/shop" || path.startsWith("/shop/") ? null : footer}</>;
 }
 
 export function AuthTools({ locale: l }: { locale: Locale }) {
