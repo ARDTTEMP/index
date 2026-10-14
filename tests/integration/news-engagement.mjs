@@ -1,0 +1,20 @@
+// Run locally with PGLITE_MODULE pointing to @electric-sql/pglite's ESM entry.
+const {PGlite}=await import(process.env.PGLITE_MODULE||'@electric-sql/pglite');
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=new PGlite();
+await db.exec(`create role anon;create role authenticated;create schema private;create table public.news(id uuid primary key,published boolean);grant select on public.news to anon,authenticated;create function private.require_worker(s text) returns void language plpgsql as $$begin if s is distinct from 'test-only-secret' then raise exception 'Forbidden' using errcode='42501';end if;end$$;insert into news values('71000000-0000-4000-8000-000000000001',true),('71000000-0000-4000-8000-000000000002',false);`);
+await db.exec(await fs.readFile(new URL('../../supabase/migrations/20261014210001_add_public_news_engagement.sql',import.meta.url),'utf8'));
+const id='71000000-0000-4000-8000-000000000001';const key='a'.repeat(64);
+const run=async(action,visitor=key,post=id,secret='test-only-secret')=>(await db.query('select record_news_engagement($1,$2,$3,$4) as result',[secret,post,visitor,action])).rows[0].result;
+assert.deepEqual(await run('read'),{views:0,likes:0,shares:0,liked:false});
+await assert.rejects(run('view',key,id,'wrong-secret'));await assert.rejects(run('view',key,'71000000-0000-4000-8000-000000000002'));
+assert.equal((await run('view')).views,1);assert.equal((await run('view')).views,1);
+assert.equal((await run('like')).likes,1);assert.equal((await run('like')).likes,1);assert.equal((await run('like')).liked,true);
+assert.equal((await run('unlike')).likes,0);assert.equal((await run('unlike')).likes,0);
+await run('like');assert.equal((await run('like','b'.repeat(64))).likes,2);assert.equal((await run('read','c'.repeat(64))).liked,false);
+assert.equal((await run('share')).shares,1);assert.equal((await run('share')).shares,1);
+await db.exec("update private.news_engagement_visitors set counted_at=now()-interval '25 hours' where kind in ('view','share')");assert.equal((await run('view')).views,2);assert.equal((await run('share')).shares,2);
+await db.exec('set role authenticated');await assert.rejects(db.exec('update public.news_engagement set views=1000'));await assert.rejects(db.exec('select * from private.news_engagement_visitors'));await db.exec('reset role');
+await db.exec('set role anon');assert.equal((await db.query('select count(*)::integer as n from public.news_engagement')).rows[0].n,1);await db.exec('reset role');await db.exec('update news set published=false');await db.exec('set role anon');assert.equal((await db.query('select count(*)::integer as n from public.news_engagement')).rows[0].n,0);
+console.log('PASS: public counts, duplicate views/likes/shares, unlike, daily reset, visitor isolation, secret enforcement, draft privacy, direct-write denial');await db.close();
