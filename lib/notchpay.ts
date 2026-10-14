@@ -3,7 +3,7 @@ import { workerClient } from "./supabase";
 import { checkoutUrl, validateNotchPayment } from "./notchpay-validation";
 type Checkout = {
   id: string;
-  kind: "dues" | "donation";
+  kind: "dues" | "donation" | "shop";
   amount: number;
   sandbox: boolean;
   provider_reference: string | null;
@@ -71,13 +71,19 @@ export async function notchLedger(
   if (result.error) throw new Error(result.error.message);
   return result.data;
 }
+export async function shopNotchLedger(operation: string, data: Record<string, unknown>) {
+  const result = await workerClient().rpc("shop_notchpay", {p_secret: process.env.EMAIL_WORKER_SECRET, p_operation: operation, p_data: data});
+  if (result.error) throw new Error(result.error.message);
+  return result.data;
+}
 export async function startNotchPayment(
-  kind: "dues" | "donation",
+  kind: "dues" | "donation" | "shop",
   target: string,
   userId?: string,
 ) {
   configuration();
-  const a: Checkout = await notchLedger("prepare", {
+  const ledger = kind === "shop" ? shopNotchLedger : notchLedger;
+  const a: Checkout = await ledger("prepare", {
     kind,
     target,
     user_id: userId,
@@ -101,8 +107,10 @@ export async function startNotchPayment(
     amount: a.amount,
     currency: "XAF",
     locked_currency: "XAF",
+    title: kind === "shop" ? "Commande Shop ARDTTEMP" : kind === "dues" ? "Cotisation ARDTTEMP" : "Soutenir ARDTTEMP",
+    theming: { color: "#166534" },
     customer: { name: a.name, email: a.email || undefined, phone: a.phone },
-    description: kind === "dues" ? "Cotisation ARDTTEMP" : "Don ARDTTEMP",
+    description: kind === "shop" ? "Commande Shop — livraison incluse" : kind === "dues" ? "Cotisation ARDTTEMP" : "Don ARDTTEMP",
     reference: `ARDTTEMP-${a.id}`,
     callback: `${origin.origin}/payment/return?payment=${a.id}`,
   });
@@ -110,13 +118,15 @@ export async function startNotchPayment(
   if (typeof ref !== "string" || !/^trx[._][A-Za-z0-9_-]+$/.test(ref))
     throw new Error("Invalid Notch Pay reference");
   const url = checkoutUrl(response.authorization_url);
-  await notchLedger("attach", { id: a.id, reference: ref, url });
+  await ledger("attach", { id: a.id, reference: ref, url });
   return { checkout_url: url, payment_id: a.id };
 }
 export async function verifyNotchPayment(
   lookup: { id: string } | { reference: string },
 ) {
-  const a: Checkout | null = await notchLedger("lookup", lookup);
+  const original: Checkout | null = await notchLedger("lookup", lookup);
+  const a: Checkout | null = original || await shopNotchLedger("lookup", lookup);
+  const ledger = original ? notchLedger : shopNotchLedger;
   if (!a) return null;
   if (!a.provider_reference)
     return { status: "creating", kind: a.kind, sandbox: a.sandbox };
@@ -128,7 +138,7 @@ export async function verifyNotchPayment(
     amount: a.amount,
     sandbox: a.sandbox,
   });
-  return await notchLedger("settle", {
+  return await ledger("settle", {
     id: a.id,
     reference: a.provider_reference,
     amount: a.amount,
