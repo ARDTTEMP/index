@@ -249,12 +249,12 @@ export default function MediaManager({
           </div>
           <div className="form-grid">
             <label>
-              {t("Description en français", "French description")}
-              <textarea name="description_fr" required minLength={2} maxLength={2000} />
+              {t("Description en français — 150 caractères minimum", "French description — at least 150 characters")}
+              <textarea name="description_fr" required minLength={150} maxLength={2000} />
             </label>
             <label>
-              {t("Description en anglais", "English description")}
-              <textarea name="description_en" required minLength={2} maxLength={2000} />
+              {t("Description en anglais — 150 caractères minimum", "English description — at least 150 characters")}
+              <textarea name="description_en" required minLength={150} maxLength={2000} />
             </label>
           </div>
           {progress && (

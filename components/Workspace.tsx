@@ -1432,7 +1432,10 @@ function ReportForm({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [submitted,setSubmitted] = useState(false);
+  const [description,setDescription] = useState("");
+  const [reportTitle,setReportTitle] = useState("");
+  if(submitted)return <section className="card" aria-live="polite"><h2>{text(l,"Rapport envoyé","Report submitted")}</h2><p>{text(l,"Envoyez maintenant vous-même la vidéo de l’activité en pièce jointe à projets@ardttemp.org, en indiquant le titre du rapport. Demandez une confirmation de réception et précisez votre accord ou votre refus pour une publication sur les réseaux sociaux. Aucun accord n’est présumé.","Now email the activity video yourself as an attachment to projets@ardttemp.org, including the report title. Request confirmation of receipt and explicitly state whether you consent to social media publication. Consent is never assumed.")}</p><a className="button" href={"mailto:projets@ardttemp.org?subject="+encodeURIComponent(text(l,"Vidéo de l’activité — ","Activity video — ")+reportTitle)+"&body="+encodeURIComponent(text(l,"Bonjour, je vous transmets la vidéo de l’activité liée au rapport : ","Hello, I am sending the activity video for the report: ")+reportTitle+"\n\n"+text(l,"Merci de confirmer sa réception et de me demander mon accord explicite avant toute publication sur les réseaux sociaux.","Please confirm receipt and request my explicit consent before any social media publication."))}>{text(l,"Préparer l’e-mail (ajoutez la vidéo en pièce jointe)","Prepare email (attach the video yourself)")}</a><p><Link href="/dashboard/reports">{text(l,"Voir mes rapports","View my reports")}</Link></p></section>;
   return (
     <form
       className="form"
@@ -1460,7 +1463,8 @@ function ReportForm({
             activity_date: fd.get("activity_date"),
             photo_urls,
           });
-          router.push("/dashboard/reports");
+          setReportTitle(String(fd.get("title")||""));
+          setSubmitted(true);
         } catch (e) {
           setError(e instanceof Error ? e.message : "Error");
         } finally {
@@ -1488,13 +1492,16 @@ function ReportForm({
         </label>
       </div>
       <label>
-        Description
+        {text(l,"Description du rapport — 1 500 caractères minimum","Report description — at least 1,500 characters")}
         <textarea
           name="description"
           required
-          minLength={10}
+          minLength={1500}
           maxLength={10000}
+          value={description}
+          onChange={e=>setDescription(e.target.value)}
         />
+      <small>{description.trim().length} / 1 500 {text(l,"caractères minimum","characters minimum")}</small>
       </label>
       <label>
         {text(
@@ -1516,6 +1523,7 @@ function ReportForm({
           "Photos remain private. Points are awarded only after the team approves your report.",
         )}
       </p>
+      <p className="form-note">{text(l,"Après envoi du rapport, envoyez vous-même la vidéo de l’activité à projets@ardttemp.org avec une demande de confirmation et votre position sur sa publication sur les réseaux sociaux.","After submitting the report, email the activity video yourself to projets@ardttemp.org, requesting confirmation and stating your position on social media publication.")}</p>
       {error && (
         <div className="notice error" role="alert">
           {error}
@@ -1889,7 +1897,7 @@ function GroupsAdmin({
           </label>
           <label>
             Description
-            <textarea name="description" maxLength={2000} />
+            <textarea name="description" required minLength={150} maxLength={2000} /><small>{text(l,"150 caractères minimum","At least 150 characters")}</small>
           </label>
           <label>
             {text(l, "Rôle", "Role")}
