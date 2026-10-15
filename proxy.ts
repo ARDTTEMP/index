@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
       rewritten.headers.set("Cache-Control","private, no-store");return rewritten;
     }
     // Keep authentication and payments on the established site and session.
-    if(!path.startsWith("/_next/")&&path!=="/api/locale"&&!/\.(?:png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/.test(path))return NextResponse.redirect(new URL(path+request.nextUrl.search,"https://www.ardttemp.org"));
+    if(!path.startsWith("/_next/")&&path!=="/api/locale"&&path!=="/shop/conditions"&&path!=="/shop/conditions/"&&!/\.(?:png|jpg|jpeg|webp|svg|ico|woff2?|css|js)$/.test(path))return NextResponse.redirect(new URL(path+request.nextUrl.search,"https://www.ardttemp.org"));
   }
   let response = NextResponse.next({ request });
   const language = request.nextUrl.searchParams.get("lang");
