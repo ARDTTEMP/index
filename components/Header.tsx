@@ -11,7 +11,8 @@ export default function Header({ locale: l, shopDomain=false }: { locale: Locale
   const path = usePathname();
   const t = (fr: string, en: string) => text(l, fr, en);
   const site=(path:string)=>shopDomain?`https://www.ardttemp.org${path}`:path;
-  const nav = [
+  const isShop=shopDomain || path === "/shop" || path.startsWith("/shop/");
+  const nav = isShop ? [["/",t("Accueil","Home")],["/join",t("Nous recrutons","Join us")]] : [
     ["/", t("Accueil", "Home")],
     ["/about", t("Qui sommes-nous", "About us")],
     ["/activities", t("Nos activités", "Our activities")],
@@ -35,10 +36,10 @@ export default function Header({ locale: l, shopDomain=false }: { locale: Locale
       <a className="skip" href="#main">
         {t("Aller au contenu", "Skip to content")}
       </a>
-      <div className="topbar">
+      {!isShop&&<div className="topbar">
         <Link href={site("/dashboard")} className="member-entry"><UserRound size={15} aria-hidden="true" /><span>{t("Espace membre", "Member area")}</span><ArrowUpRight size={14} aria-hidden="true" /></Link>
         <a href="tel:+237655508511">+237 655 50 85 11</a>
-      </div>
+      </div>}
       <header className="header">
         <Link href={site("/")} className="brand">
           <Image src="/logo.png" alt="ARDTTEMP" width={52} height={52} />
@@ -74,13 +75,13 @@ export default function Header({ locale: l, shopDomain=false }: { locale: Locale
               {label}
             </Link>
           ))}
-          <Link
+          {!isShop&&<Link
             href={site("/gallery")}
             aria-current={path === "/gallery" ? "page" : undefined}
             onClick={() => setOpen(false)}
           >
             {t("Galerie", "Gallery")}
-          </Link>
+          </Link>}
         </nav>
         <div className="header-actions">
           <div className="language" aria-label={t("Langue", "Language")}>
@@ -95,9 +96,9 @@ export default function Header({ locale: l, shopDomain=false }: { locale: Locale
               </button>
             ))}
           </div>
-          <Link className="button small" href={site("/donate")}>
+          {!isShop&&<Link className="button small" href={site("/donate")}>
             {t("Faire un don", "Donate")}
-          </Link>
+          </Link>}
         </div>
       </header>
     </>
