@@ -208,8 +208,8 @@ export function DuesPanel({
           <h2>{t("Barème de cotisation", "Membership fee settings")}</h2>
           <p>
             {t(
-              "Fixez le montant, la période et les coordonnées de paiement. Le bénévolat reste sans cotisation.",
-              "Set the fee, period and payment details. Volunteering remains free of membership fees.",
+              "Fixez le montant et la période. Les cotisations sont réglées avec Notch Pay. Le bénévolat reste sans cotisation.",
+              "Set the amount and period. Membership fees are paid with Notch Pay. Volunteers remain exempt.",
             )}
           </p>
           <form
@@ -243,49 +243,6 @@ export function DuesPanel({
                 />
               </label>
             </div>
-            <label>
-              {t(
-                "Instructions et bénéficiaire — français",
-                "Instructions and payee — French",
-              )}
-              <textarea
-                name="instructions_fr"
-                required
-                minLength={10}
-                maxLength={5000}
-                defaultValue={settings.instructions_fr}
-              />
-            </label>
-            <label>
-              {t(
-                "Instructions et bénéficiaire — anglais (facultatif)",
-                "Instructions and payee — English (optional)",
-              )}
-              <small>
-                {t(
-                  "Sans version anglaise, les instructions françaises seront affichées.",
-                  "Without an English version, French instructions will be displayed.",
-                )}
-              </small>
-              <textarea
-                name="instructions_en"
-                minLength={10}
-                maxLength={5000}
-                defaultValue={settings.instructions_en}
-              />
-            </label>
-            <label>
-              {t(
-                "Lien de paiement sécurisé (facultatif)",
-                "Secure checkout link (optional)",
-              )}
-              <input
-                name="checkout_url"
-                type="url"
-                placeholder="https://"
-                defaultValue={settings.checkout_url || ""}
-              />
-            </label>
             <button className="button" disabled={busy}>
               {t("Enregistrer le barème", "Save fee settings")}
             </button>
@@ -312,21 +269,6 @@ export function DuesPanel({
           </p>
           {!exempt && settings.amount && (
             <>
-              <p className="payment-instructions">
-                {l === "fr"
-                  ? settings.instructions_fr
-                  : settings.instructions_en}
-              </p>
-              {settings.checkout_url && (
-                <a
-                  className="button"
-                  href={settings.checkout_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t("Payer en ligne ↗", "Pay online ↗")}
-                </a>
-              )}
               {notchEnabled &&
                 !data.payments.some(
                   (payment) =>
@@ -357,20 +299,17 @@ export function DuesPanel({
                 )}
               <p className="form-note">
                 {t(
-                  "Après votre versement, transmettez sa référence ou son justificatif ci-dessous. La cotisation sera confirmée après vérification par l’association et donnera droit à 200 points, une seule fois par période.",
-                  "After paying, submit its reference or receipt below. The association will confirm your fee after verification and award 200 points once per period.",
+                  "La cotisation est confirmée automatiquement après vérification du paiement auprès de Notch Pay et donne droit à 200 points, une seule fois par période.",
+                  "Your fee is confirmed automatically after verification with Notch Pay and awards 200 points once per period.",
                 )}
               </p>
-              {!data.payments.some(
-                (payment) => payment.period === settings.period,
-              ) && (
-                <button
-                  className="button"
-                  disabled={busy || settings.instructions_fr.trim().length < 10}
-                  onClick={() => void run({ op: "create_dues" })}
-                >
-                  {t("Préparer ma cotisation", "Prepare my membership payment")}
-                </button>
+              {!notchEnabled && (
+                <p role="status">
+                  {t(
+                    "Le paiement Notch Pay est momentanément indisponible.",
+                    "Notch Pay is temporarily unavailable.",
+                  )}
+                </p>
               )}
             </>
           )}
@@ -458,88 +397,6 @@ export function DuesPanel({
               >
                 {t("Voir le justificatif", "View receipt")}
               </button>
-            )}
-            {!admin && ["pending", "rejected"].includes(payment.status) && (
-              <form
-                className="form"
-                onSubmit={async (event) => {
-                  event.preventDefault();
-                  const form = event.currentTarget;
-                  const fd = new FormData(form);
-                  setBusy(true);
-                  setError("");
-                  try {
-                    let receipt_path = null;
-                    const source = fd.get("receipt");
-                    if (source instanceof File && source.size) {
-                      const prepared = source.type.startsWith("image/")
-                        ? await optimizeImage(source)
-                        : source;
-                      receipt_path = await uploadPersonal(
-                        prepared,
-                        "dues-receipts",
-                      );
-                    }
-                    await act({
-                      op: "submit_dues",
-                      id: payment.id,
-                      method: fd.get("method"),
-                      reference: fd.get("reference"),
-                      receipt_path,
-                    });
-                  } catch (e) {
-                    setError(e instanceof Error ? e.message : "Error");
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                <div className="form-grid">
-                  <label>
-                    {t("Mode de paiement", "Payment method")}
-                    <select name="method">
-                      <option value="mobile_money">Mobile Money</option>
-                      <option value="bank_transfer">
-                        {t("Virement", "Bank transfer")}
-                      </option>
-                      <option value="cash">
-                        {t("Espèces au siège", "Cash at office")}
-                      </option>
-                      {settings.checkout_url && (
-                        <option value="online">
-                          {t("Paiement en ligne", "Online payment")}
-                        </option>
-                      )}
-                    </select>
-                  </label>
-                  <label>
-                    {t(
-                      "Référence ou numéro de reçu",
-                      "Transaction or receipt reference",
-                    )}
-                    <input
-                      name="reference"
-                      required
-                      minLength={3}
-                      maxLength={200}
-                    />
-                  </label>
-                </div>
-                <label>
-                  {t(
-                    "Justificatif (photo ou PDF, facultatif)",
-                    "Receipt (photo or PDF, optional)",
-                  )}
-                  <input
-                    name="receipt"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,application/pdf"
-                  />
-                </label>
-                <button className="button" disabled={busy}>
-                  {t("Soumettre pour vérification", "Submit for verification")}
-                </button>
-              </form>
             )}
             {admin && payment.status === "submitted" && (
               <form
