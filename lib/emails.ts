@@ -40,8 +40,8 @@ export function emailTemplate(
         "Your newsletter subscription",
       );
       message = t(
-        "Merci, inscription confirmée. Vous recevrez les nouvelles actualités ARDTTEMP.",
-        "Thank you. You will receive ARDTTEMP news. To unsubscribe, contact partnership@ardttemp.org.",
+        "Merci, inscription confirmée. Vous recevrez les nouvelles actualités ARDTTEMP. Pour vous désinscrire, utilisez le lien en bas de cet email.",
+        "Thank you. You will receive ARDTTEMP news. Use the link at the bottom of this email to unsubscribe.",
       );
       link = "/news";
       break;
@@ -52,7 +52,8 @@ export function emailTemplate(
       message = t("Une nouvelle actualité vient d’être publiée : " + title + ". " + summary, "A new news article has been published: " + title + ". " + summary);
       link = "/news";
       break;
-    }    case "password_changed":
+    }
+    case "password_changed":
     case "email_changed":
       subject = t("Alerte de sécurité ARDTTEMP", "ARDTTEMP security alert");
       message = t(
@@ -65,6 +66,47 @@ export function emailTemplate(
       );
       link = "/dashboard";
       break;
+    case "payment_confirmed":
+      subject = t("Paiement confirmé — ARDTTEMP", "Payment confirmed — ARDTTEMP");
+      message = t(
+        `Votre paiement de ${p.amount} ${p.currency} est confirmé. Motif : ${p.payment_purpose}. Référence : ${p.payment_reference}.`,
+        `Your payment of ${p.amount} ${p.currency} is confirmed. Purpose: ${p.payment_purpose}. Reference: ${p.payment_reference}.`,
+      );
+      link = "/dashboard/dues";
+      break;
+    case "payment_failed":
+      subject = t("Échec du paiement — ARDTTEMP", "Payment failed — ARDTTEMP");
+      message = t(
+        `Le paiement de ${p.amount} ${p.currency} n’a pas abouti. Vous pouvez réessayer depuis votre espace.`,
+        `Your payment of ${p.amount} ${p.currency} could not be completed. You can try again from your dashboard.`,
+      );
+      link = "/dashboard/dues";
+      break;
+    case "welcome_member":
+      subject = t("Bienvenue chez ARDTTEMP", "Welcome to ARDTTEMP");
+      message = t(
+        `Votre adhésion est active. Votre matricule est ${p.member_id}.`,
+        `Your membership is active. Your membership ID is ${p.member_id}.`,
+      );
+      link = "/dashboard";
+      break;
+    case "role_changed":
+      subject = t("Mise à jour de votre rôle ARDTTEMP", "Your ARDTTEMP role has changed");
+      message = t(
+        `Votre rôle de membre a été mis à jour : ${p.new_role}.`,
+        `Your member role has been updated: ${p.new_role}.`,
+      );
+      link = "/dashboard";
+      break;
+    case "renewal_confirmed":
+      subject = t("Renouvellement confirmé — ARDTTEMP", "Renewal confirmed — ARDTTEMP");
+      message = t(
+        `Votre renouvellement est confirmé. Votre adhésion est valable jusqu’au ${p.new_expiry_date}.`,
+        `Your renewal is confirmed. Your membership is valid until ${p.new_expiry_date}.`,
+      );
+      link = "/dashboard/dues";
+      break;
+
     case "registration_received":
       subject = t(
         "Votre demande d’adhésion est reçue",
