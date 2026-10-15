@@ -150,3 +150,17 @@ revoke all on function private.check_reward(uuid) from public,anon,authenticated
 drop trigger if exists trg_donation_pending_email on public.donations;
 
 commit;
+
+begin;
+
+drop trigger if exists newsletter_subscriber_email_events on public.newsletter_subscribers;
+create trigger newsletter_subscriber_email_events
+after insert or update on public.newsletter_subscribers
+for each row execute function private.newsletter_email_events();
+
+drop trigger if exists published_newsletter_email_events on public.news;
+create trigger published_newsletter_email_events
+after insert or update on public.news
+for each row execute function private.queue_published_newsletter();
+
+commit;
