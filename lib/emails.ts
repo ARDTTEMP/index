@@ -15,8 +15,10 @@ export function emailTemplate(
   p: Record<string, unknown>,
   l: Locale,
 ) {
-  const t = (fr: string, en: string) => text(l, fr, en);
-  const url = process.env.NEXT_PUBLIC_APP_URL || "https://www.ardttemp.org";
+  const t = (fr: string, en: string) => text(l, fr, en);  const url = process.env.NEXT_PUBLIC_APP_URL || "https://www.ardttemp.org";
+  const unsubscribeUrl = p.unsubscribe_token
+    ? `${url}/api/newsletter/unsubscribe?token=${encodeURIComponent(String(p.unsubscribe_token))}`
+    : "";
   let subject = "",
     message = "",
     link = "/dashboard";
@@ -38,11 +40,73 @@ export function emailTemplate(
         "Your newsletter subscription",
       );
       message = t(
-        "Merci. Vous recevrez les actualités d’ARDTTEMP. Pour vous désinscrire, contactez partnership@ardttemp.org.",
-        "Thank you. You will receive ARDTTEMP news. To unsubscribe, contact partnership@ardttemp.org.",
+        "Merci, inscription confirmée. Vous recevrez les nouvelles actualités ARDTTEMP. Pour vous désinscrire, utilisez le lien en bas de cet email.",
+        "Thank you. You will receive ARDTTEMP news. Use the link at the bottom of this email to unsubscribe.",
       );
       link = "/news";
       break;
+    case "newsletter_published": {
+      const title = String(l === "en" ? p.title_en || p.title_fr || "" : p.title_fr || p.title_en || "");
+      const summary = String(l === "en" ? p.excerpt_en || p.excerpt_fr || "" : p.excerpt_fr || p.excerpt_en || "");
+      subject = t("Nouvelle actualité ARDTTEMP : " + title, "New ARDTTEMP news: " + title);
+      message = t("Une nouvelle actualité vient d’être publiée : " + title + ". " + summary, "A new news article has been published: " + title + ". " + summary);
+      link = "/news";
+      break;
+    }
+    case "password_changed":
+    case "email_changed":
+      subject = t("Alerte de sécurité ARDTTEMP", "ARDTTEMP security alert");
+      message = t(
+        event === "password_changed"
+          ? "Le mot de passe de votre compte vient d’être modifié. Si vous n’êtes pas à l’origine de cette action, contactez immédiatement l’équipe ARDTTEMP."
+          : "L’adresse email de votre compte vient d’être modifiée vers " + String(p.new_email || "une nouvelle adresse") + ".",
+        event === "password_changed"
+          ? "Your account password was just changed. If you did not make this change, contact ARDTTEMP support immediately."
+          : "Your account email was changed to " + String(p.new_email || "a new address") + ".",
+      );
+      link = "/dashboard";
+      break;
+    case "payment_confirmed":
+      subject = t("Paiement confirmé — ARDTTEMP", "Payment confirmed — ARDTTEMP");
+      message = t(
+        `Votre paiement de ${p.amount} ${p.currency} est confirmé. Motif : ${p.payment_purpose}. Référence : ${p.payment_reference}.`,
+        `Your payment of ${p.amount} ${p.currency} is confirmed. Purpose: ${p.payment_purpose}. Reference: ${p.payment_reference}.`,
+      );
+      link = "/dashboard/dues";
+      break;
+    case "payment_failed":
+      subject = t("Échec du paiement — ARDTTEMP", "Payment failed — ARDTTEMP");
+      message = t(
+        `Le paiement de ${p.amount} ${p.currency} n’a pas abouti. Vous pouvez réessayer depuis votre espace.`,
+        `Your payment of ${p.amount} ${p.currency} could not be completed. You can try again from your dashboard.`,
+      );
+      link = "/dashboard/dues";
+      break;
+    case "welcome_member":
+      subject = t("Bienvenue chez ARDTTEMP", "Welcome to ARDTTEMP");
+      message = t(
+        `Votre adhésion est active. Votre matricule est ${p.member_id}.`,
+        `Your membership is active. Your membership ID is ${p.member_id}.`,
+      );
+      link = "/dashboard";
+      break;
+    case "role_changed":
+      subject = t("Mise à jour de votre rôle ARDTTEMP", "Your ARDTTEMP role has changed");
+      message = t(
+        `Votre rôle de membre a été mis à jour : ${p.new_role}.`,
+        `Your member role has been updated: ${p.new_role}.`,
+      );
+      link = "/dashboard";
+      break;
+    case "renewal_confirmed":
+      subject = t("Renouvellement confirmé — ARDTTEMP", "Renewal confirmed — ARDTTEMP");
+      message = t(
+        `Votre renouvellement est confirmé. Votre adhésion est valable jusqu’au ${p.new_expiry_date}.`,
+        `Your renewal is confirmed. Your membership is valid until ${p.new_expiry_date}.`,
+      );
+      link = "/dashboard/dues";
+      break;
+
     case "registration_received":
       subject = t(
         "Votre demande d’adhésion est reçue",
@@ -181,7 +245,7 @@ export function emailTemplate(
   }
   return {
     subject,
-    html: `<!doctype html><html lang="${l}"><body style="font-family:Arial,sans-serif;background:#f4f7f4;padding:24px;color:#17251c"><main style="max-width:560px;background:white;margin:auto;padding:32px;border-top:6px solid #166534"><h2 style="color:#166534">ARDTTEMP</h2><h1 style="font-size:23px">${escape(subject)}</h1><p style="line-height:1.7;white-space:pre-line">${escape(message)}</p><a href="${escape(link.startsWith("https://") ? link : url + link)}" style="display:inline-block;padding:14px 20px;background:#166534;color:white;text-decoration:none">${t("Ouvrir le site", "Open website")}</a><hr style="border:0;border-top:1px solid #eee;margin:28px 0"><p style="font-size:13px">Transformons notre Environnement Ensemble<br>Rue 7.949, Efoulan, Yaoundé, Cameroun<br>partnership@ardttemp.org · +237 655 50 85 11</p></main></body></html>`,
+    html: `<!doctype html><html lang="${l}"><body style="font-family:Arial,sans-serif;background:#f4f7f4;padding:24px;color:#17251c"><main style="max-width:560px;background:white;margin:auto;padding:32px;border-top:6px solid #166534"><h2 style="color:#166534">ARDTTEMP</h2><h1 style="font-size:23px">${escape(subject)}</h1><p style="line-height:1.7;white-space:pre-line">${escape(message)}</p><a href="${escape(link.startsWith("https://") ? link : url + link)}" style="display:inline-block;padding:14px 20px;background:#166534;color:white;text-decoration:none">${t("Ouvrir le site", "Open website")}</a><hr style="border:0;border-top:1px solid #eee;margin:28px 0"><p style="font-size:13px">Transformons notre Environnement Ensemble<br>Rue 7.949, Efoulan, Yaoundé, Cameroun<br>partnership@ardttemp.org · +237 655 50 85 11</p>${unsubscribeUrl ? `<p style="font-size:12px"><a href="${escape(unsubscribeUrl)}">${t("Se désinscrire de la newsletter", "Unsubscribe from the newsletter")}</a></p>` : ""}</main></body></html>`,
   };
 }
 export async function drainEmails() {
