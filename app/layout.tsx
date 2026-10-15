@@ -27,7 +27,7 @@ export default async function RootLayout({
   return (
     <html lang={l}>
       <body>
-        <SiteFrame shopDomain={shopDomain} header={<Header locale={l} shopDomain={shopDomain} />} footer={<Footer locale={l} />}>
+        <SiteFrame locale={l} shopDomain={shopDomain} header={<Header locale={l} shopDomain={shopDomain} />} footer={<Footer locale={l} />}>
           {children}
         </SiteFrame>
       </body>
