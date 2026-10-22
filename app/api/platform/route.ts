@@ -5,7 +5,6 @@ import { supabase, workerClient, locale } from "@/lib/supabase";
 import { REGIONS, isAdmin, memberRoles, type Profile } from "@/lib/domain";
 import { rateLimit, RateLimitUnavailableError } from "@/lib/security";
 import { drainEmails } from "@/lib/emails";
-import { fallbackInstructions } from "@/lib/payments";
 import { notchConfigured, startNotchPayment } from "@/lib/notchpay";
 import { errorMessage } from "@/lib/errors";
 // Short-lived, caller-scoped cache. Authorization/RLS are checked on every request.
@@ -185,7 +184,6 @@ export async function GET(req: NextRequest) {
           "membership_requests",
           "reports",
           "profiles",
-          "donations",
         ];
         const out = await Promise.all(
           tables.map(async (table) => {
@@ -279,9 +277,6 @@ export async function GET(req: NextRequest) {
         }));
         break;
       }
-      case "admin/donations":
-        data = await query("donations");
-        break;
       case "admin/groups":
         data = {
           groups: await query("groups"),
@@ -343,6 +338,11 @@ export async function POST(req: NextRequest) {
     if (ct.includes("multipart/form-data")) return await upload(req);
     const b = await req.json();
     const op = z.string().parse(b.op);
+    if (op === "donate")
+      return NextResponse.json(
+        { error: "Les demandes de don ne sont plus disponibles." },
+        { status: 410 },
+      );
     const db = await supabase();
     const l = await locale();
     let result: unknown = { ok: true };
@@ -351,7 +351,6 @@ export async function POST(req: NextRequest) {
         "login",
         "register",
         "contact",
-        "donate",
         "forgot",
         "newsletter",
       ].includes(op)
@@ -450,55 +449,6 @@ export async function POST(req: NextRequest) {
         p_locale: l,
       });
       check(error);
-    } else if (op === "donate") {
-      const d = z
-        .object({
-          donor_name: short,
-          donor_email: z.union([z.email(), z.literal("")]),
-          donor_phone: phone,
-          amount: z.coerce.number().int().min(100).max(100000000),
-          message: z.string().max(2000),
-          is_monthly: z.boolean(),
-          payment_method: z.enum([
-            "notchpay",
-            "smobilpay",
-            "mobile_money",
-            "bank_transfer",
-            "cash",
-          ]),
-        })
-        .parse(b);
-      if (d.payment_method === "notchpay" && !notchConfigured())
-        throw new ConfigurationError("Notch Pay n’est pas encore activé.");
-      const { data: u } = await db.auth.getUser();
-      const { data, error } = await workerClient().rpc(
-        d.payment_method === "notchpay"
-          ? "submit_notchpay_donation"
-          : "submit_donation",
-        {
-          p_secret: process.env.EMAIL_WORKER_SECRET,
-          ...(d.payment_method === "notchpay"
-            ? { p_key: uuid.parse(b.payment_key) }
-            : {}),
-          p_data: {
-            ...d,
-            locale: l,
-            payment_method: ["smobilpay", "notchpay"].includes(d.payment_method)
-              ? "mobile_money"
-              : d.payment_method,
-          },
-          p_user: u.user?.id || null,
-        },
-      );
-      check(error);
-      result = { ok: true, reference: data, message: fallbackInstructions[l] };
-      if (d.payment_method === "notchpay") {
-        result = {
-          ok: true,
-          reference: data,
-          ...(await startNotchPayment("donation", uuid.parse(data))),
-        };
-      }
     } else if (op === "pay_dues_notchpay") {
       const p = await actor(db);
       if (
@@ -555,7 +505,6 @@ export async function POST(req: NextRequest) {
         "create_group",
         "add_member",
         "review_reward",
-        "complete_donation",
         "create_media_upload",
         "publish_media",
         "delete_media",
@@ -1011,9 +960,6 @@ export async function POST(req: NextRequest) {
               .max(2000)
               .parse(b.notes || ""),
           });
-          break;
-        case "complete_donation":
-          await rpc("complete_donation", { p_id: uuid.parse(b.id) });
           break;
         case "create_news_upload":
         case "create_media_upload":
