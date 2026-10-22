@@ -6,7 +6,6 @@ const config: NextConfig = {
       "about",
       "activities",
       "news",
-      "donate",
       "join",
       "contact",
       "login",
@@ -21,6 +20,9 @@ const config: NextConfig = {
         },
       ])
       .concat([
+        { source: "/donate", destination: "/join", permanent: true },
+        { source: "/donate.html", destination: "/join", permanent: true },
+        { source: "/en/donate.html", destination: "/join?lang=en", permanent: true },
         { source: "/index.html", destination: "/", permanent: true },
         { source: "/en/index.html", destination: "/?lang=en", permanent: true },
       ]);

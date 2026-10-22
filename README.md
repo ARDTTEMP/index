@@ -4,9 +4,9 @@ Next.js App Router, TypeScript, Tailwind, Supabase Auth/PostgreSQL/Storage et Re
 
 ## Parcours disponibles
 
-- Public : `/`, `/about`, `/activities`, `/news`, `/donate`, `/join`, `/contact`, `/login`, `/register`.
+- Public : `/`, `/about`, `/activities`, `/news`, `/join`, `/contact`, `/login`, `/register`. L’ancienne adresse `/donate` redirige vers `/join`.
 - Membre : `/dashboard`, `/dashboard/profile`, `/dashboard/reports`, `/dashboard/reports/new`, `/dashboard/groups`, `/dashboard/rewards`.
-- Administration : `/dashboard/admin`, puis `/requests`, `/reports`, `/members`, `/news`, `/donations`, `/groups`, `/rewards` sous ce chemin. `/admin/*` redirige vers ces pages.
+- Administration : `/dashboard/admin`, puis `/requests`, `/reports`, `/members`, `/news`, `/groups`, `/rewards` sous ce chemin. `/admin/*` redirige vers ces pages.
 - Invitations : `/g/{invite_token}`. Compte approuvé et correspondant au filtre, ou ajouté manuellement.
 - Français par défaut ; le sélecteur de langue conserve le choix dans un cookie. Le profil définit la langue des emails.
 
@@ -22,7 +22,7 @@ Seul un Super Admin peut créer ou promouvoir un Admin. Un Admin examine les adh
 
 Le schéma a été appliqué au projet Supabase **ARDTTEMP Website**. `supabase/schema.sql` est une migration initiale pour la base historique identifiée, **à ne pas réexécuter telle quelle** sur la production déjà migrée. `supabase/seed.sql` initialise le premier Super Admin et deux articles bilingues de présentation fondés sur les faits fournis. `supabase/finalize.sql` préserve la newsletter et ferme les anciennes opérations privilégiées.
 
-Les membres, dons, abonnés et messages historiques ne sont pas supprimés. La table des dons a été étendue et le statut historique `paid` converti en `completed`; les identifiants et autres données restent intacts. Les profils historiques sont créés en attente : aucune promotion automatique n'est déduite des anciens rôles.
+Les abonnés, messages et données financières historiques ne sont pas supprimés. Les profils historiques sont créés en attente : aucune promotion automatique n'est déduite des anciens rôles.
 
 Super Admin initial : **projets@ardttemp.org**, **ARDT-S-00001**, 0 point. Compte créé avec un mot de passe aléatoire non partagé. Utiliser `/forgot-password` pour définir son mot de passe ; vérifier les URL autorisées et la livraison des emails Auth dans Supabase. Ne pas publier de mot de passe dans GitHub.
 
