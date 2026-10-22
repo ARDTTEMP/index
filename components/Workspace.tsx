@@ -192,7 +192,6 @@ export default function Workspace({
     "admin/pages": t("Gestion des pages", "Page management"),
     "admin/news": t("Actualités bilingues", "Bilingual news"),
     "admin/media": t("Photos & vidéos", "Photos & videos"),
-    "admin/donations": t("Suivi des dons", "Donation tracking"),
     "admin/groups": t("Groupes de travail", "Working groups"),
     "admin/rewards": t("Gestion des récompenses", "Reward management"),
   };
@@ -221,7 +220,6 @@ export default function Workspace({
     "admin/pages": FileText,
     "admin/news": Newspaper,
     "admin/media": ImageIcon,
-    "admin/donations": HeartHandshake,
     "admin/groups": UsersRound,
     "admin/rewards": Award,
   };
@@ -254,7 +252,6 @@ export default function Workspace({
     "admin/members",
     "admin/news",
     "admin/media",
-    "admin/donations",
     "admin/dues",
     "admin/groups",
     "admin/rewards",
@@ -285,7 +282,7 @@ export default function Workspace({
           },
           {
             title: t("Finances & récompenses", "Finance & rewards"),
-            items: ["admin/dues", "admin/donations", "admin/rewards"],
+            items: ["admin/dues", "admin/rewards"],
           },
         ]
       : []),
@@ -872,7 +869,6 @@ export default function Workspace({
                         membership_requests: "requests",
                         profiles: "members",
                         reports: "reports",
-                        donations: "donations",
                       }[key as "profiles"]
                     }
                   >
@@ -883,7 +879,7 @@ export default function Workspace({
                           ? t("Comptes approuvés", "Approved accounts")
                           : key === "reports"
                             ? t("Rapports en attente", "Pending reports")
-                            : t("Dons en attente", "Pending donations")}
+                            : t("Rapports en attente", "Pending reports")}
                     </p>
                     <strong className="points-value">{String(value)}</strong>
                   </Link>
@@ -968,67 +964,6 @@ export default function Workspace({
             )}
             {view === "admin/media" && (
               <MediaManager rows={data || []} act={act} l={l} />
-            )}
-            {view === "admin/donations" && (
-              <>
-                {data?.length ? (
-                  data.map((r: Row) => (
-                    <article className="card" key={r.id}>
-                      <h3>
-                        {Number(r.amount).toLocaleString(l)} FCFA ·{" "}
-                        {r.donor_name}
-                      </h3>
-                      <div className="meta">
-                        <span>{r.donor_email}</span>
-                        <span>{r.donor_phone}</span>
-                        <span>{r.payment_method || r.payment_provider}</span>
-                      </div>
-                      {status(r.status)}
-                      <p>{r.message}</p>
-                      <p>
-                        {t("Référence : ", "Reference: ")}
-                        {r.id}
-                      </p>
-                      {r.is_monthly && (
-                        <p>
-                          {t(
-                            "Don mensuel à organiser avec le donateur.",
-                            "Monthly donation to arrange with the donor.",
-                          )}
-                        </p>
-                      )}
-                      {r.status === "pending" && (
-                        <div className="actions">
-                          <button
-                            className="button"
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  t(
-                                    "Confirmer uniquement après vérification du paiement reçu.",
-                                    "Confirm only after verifying receipt of payment.",
-                                  ),
-                                )
-                              )
-                                void act({
-                                  op: "complete_donation",
-                                  id: r.id,
-                                }).catch(() => {});
-                            }}
-                          >
-                            {t(
-                              "Confirmer le paiement reçu",
-                              "Confirm payment received",
-                            )}
-                          </button>
-                        </div>
-                      )}
-                    </article>
-                  ))
-                ) : (
-                  <Empty l={l} />
-                )}
-              </>
             )}
             {view === "admin/groups" && (
               <GroupsAdmin data={data} act={act} l={l} />

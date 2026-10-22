@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { PASSWORD_PATTERN, passwordHelp } from "@/lib/password";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -74,7 +74,7 @@ export default function PublicForm({
   kind,
   locale: l,
 }: {
-  kind: "login" | "register" | "contact" | "donate" | "forgot" | "reset";
+  kind: "login" | "register" | "contact" | "forgot" | "reset";
   locale: Locale;
 }) {
   const router = useRouter();
@@ -86,17 +86,8 @@ export default function PublicForm({
   const [registrationProfile, setRegistrationProfile] = useState<
     Record<string, FormDataEntryValue>
   >({});
-  const [amount, setAmount] = useState(10000);
   const [success, setSuccess] = useState(false);
-  const [notchEnabled, setNotchEnabled] = useState(false);
-  const donationKey = useRef<string | null>(null);
-  useEffect(() => {
-    if (kind === "donate")
-      fetch("/api/payments/notchpay")
-        .then((r) => r.json())
-        .then((d) => setNotchEnabled(d.enabled))
-        .catch(() => {});
-  }, [kind]);
+  const [requestedRole, setRequestedRole] = useState("membre");
   const t = (fr: string, en: string) => text(l, fr, en);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -128,14 +119,7 @@ export default function PublicForm({
     if (kind === "register") b = { ...registrationProfile, ...b };
     b = { ...b, op: kind, locale: l };
     if (kind === "register") b.terms = fd.get("terms") === "on";
-    if (kind === "donate") {
-      b.amount = amount;
-      b.is_monthly = fd.get("is_monthly") === "on";
-      if (b.payment_method === "notchpay") {
-        donationKey.current ||= crypto.randomUUID();
-        b.payment_key = donationKey.current;
-      }
-    }
+    const payDuesNow = kind === "register" && fd.get("pay_dues_now") === "on";
     try {
       const data = await api(b);
       if (data.checkout_url) {
@@ -153,11 +137,26 @@ export default function PublicForm({
         );
         router.refresh();
       } else if (kind === "register") {
+        if (payDuesNow && data.session) {
+          try {
+            const payment = await api({ op: "pay_dues_notchpay" });
+            if (payment.checkout_url) {
+              window.location.assign(payment.checkout_url);
+              return;
+            }
+          } catch {
+            // Registration succeeded; payment can be started later from the member area.
+          }
+        }
         setSuccess(true);
         setMessage(
           t(
-            "Votre demande est reçue. Vérifiez votre boîte email pour confirmer votre adresse, puis connectez-vous. Votre compte reste en attente de validation par un administrateur.",
-            "Your application has been received. Check your inbox to confirm your email, then sign in. Your account remains pending administrator approval.",
+            payDuesNow
+              ? "Votre demande est reçue. Le paiement n’a pas été lancé ; vous pourrez régler la cotisation après confirmation de votre adresse et connexion. Votre compte reste en attente de validation par un administrateur."
+              : "Votre demande est reçue. Vérifiez votre boîte email pour confirmer votre adresse, puis connectez-vous. Votre compte reste en attente de validation par un administrateur.",
+            payDuesNow
+              ? "Your application has been received. Payment was not started; you can pay the membership fee after confirming your email and signing in. Your account remains pending administrator approval."
+              : "Your application has been received. Check your inbox to confirm your email, then sign in. Your account remains pending administrator approval.",
           ),
         );
       } else if (kind === "contact") {
@@ -167,14 +166,6 @@ export default function PublicForm({
             "Votre message est enregistré et sera transmis à notre équipe.",
             "Your message has been recorded and will be forwarded to our team.",
           ),
-        );
-      } else if (kind === "donate") {
-        setSuccess(true);
-        setMessage(
-          data.message +
-            " " +
-            t("Référence : ", "Reference: ") +
-            data.reference,
         );
       } else if (kind === "reset") {
         setMessage(t("Mot de passe modifié.", "Password updated."));
@@ -347,7 +338,7 @@ export default function PublicForm({
               >
                 <label>
                   {t("Rôle demandé", "Requested role")}
-                  <select name="requested_role" required defaultValue="membre">
+                  <select name="requested_role" required value={requestedRole} onChange={(e) => setRequestedRole(e.target.value)}>
                     {memberRoles.map((r) => (
                       <option key={r} value={r}>
                         {roleLabels[l][r]}
@@ -401,6 +392,17 @@ export default function PublicForm({
                     "After registration: email confirmation, team review, then a membership ID and 50 points upon approval. Volunteering does not require a fee.",
                   )}
                 </p>
+                {requestedRole !== "benevole" && (
+                  <label className="check">
+                    <input type="checkbox" name="pay_dues_now" />
+                    <span>
+                      {t(
+                        "Je souhaite régler ma cotisation maintenant (facultatif). Je peux aussi m’inscrire sans payer et régler plus tard.",
+                        "I would like to pay my membership fee now (optional). I can also register without paying and pay later.",
+                      )}
+                    </span>
+                  </label>
+                )}
               </fieldset>
             </>
           )}
@@ -451,89 +453,6 @@ export default function PublicForm({
               </p>
             </>
           )}
-          {kind === "donate" && (
-            <>
-              <div className="amounts">
-                {[5000, 10000, 25000, 50000, 100000, 250000].map((x) => (
-                  <button
-                    key={x}
-                    type="button"
-                    className={amount === x ? "active" : ""}
-                    onClick={() => setAmount(x)}
-                  >
-                    {x.toLocaleString(l)} FCFA
-                  </button>
-                ))}
-              </div>
-              <label>
-                {t("Montant libre (FCFA)", "Custom amount (XAF)")}
-                <input
-                  name="amount"
-                  type="number"
-                  min={100}
-                  max={100000000}
-                  required
-                  value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                />
-              </label>
-              <label className="check">
-                <input name="is_monthly" type="checkbox" />
-                <span>
-                  {t(
-                    "Je souhaite donner chaque mois — l’équipe me contactera pour organiser les versements.",
-                    "I would like to donate monthly — the team will contact me to arrange payments.",
-                  )}
-                </span>
-              </label>
-              <div className="form-grid">
-                <label>
-                  {t("Nom du donateur", "Donor name")}
-                  <input
-                    name="donor_name"
-                    required
-                    autoComplete="name"
-                    minLength={2}
-                  />
-                </label>
-                <label>
-                  Email
-                  <input name="donor_email" type="email" autoComplete="email" />
-                </label>
-              </div>
-              <label>
-                {t("Téléphone", "Phone")}
-                <input
-                  name="donor_phone"
-                  type="tel"
-                  required
-                  autoComplete="tel"
-                  minLength={6}
-                />
-              </label>
-              <input type="hidden" name="payment_method" value="notchpay" />
-              <p>
-                {t(
-                  "Paiement sécurisé avec Notch Pay",
-                  "Secure payment with Notch Pay",
-                )}
-              </p>
-              <label>
-                {t("Votre message (facultatif)", "Your message (optional)")}
-                <textarea name="message" maxLength={2000} />
-              </label>
-              <p className="form-note">
-                {t(
-                  notchEnabled
-                    ? "Avec Notch Pay, vous serez dirigé vers la page de paiement. Votre don sera confirmé après vérification. "
-                    : "Le paiement Notch Pay est momentanément indisponible. Réessayez plus tard.",
-                  notchEnabled
-                    ? "Notch Pay takes you to the payment page. Your donation is confirmed after verification. "
-                    : "Notch Pay is temporarily unavailable. Please try again later.",
-                )}
-              </p>
-            </>
-          )}
           {kind === "reset" && (
             <>
               <PasswordField
@@ -564,7 +483,7 @@ export default function PublicForm({
             )}
             <button
               className="button"
-              disabled={busy || (kind === "donate" && !notchEnabled)}
+              disabled={busy}
             >
               {busy
                 ? t("En cours…", "Please wait…")
@@ -574,9 +493,7 @@ export default function PublicForm({
                     ? step === 1
                       ? t("Continuer", "Continue")
                       : t("Envoyer ma demande", "Submit application")
-                    : kind === "donate"
-                      ? t("Payer avec Notch Pay", "Pay with Notch Pay")
-                      : kind === "forgot"
+                    : kind === "forgot"
                         ? t("Recevoir le lien", "Send reset link")
                         : kind === "reset"
                           ? t("Modifier le mot de passe", "Update password")

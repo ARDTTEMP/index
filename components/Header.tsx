@@ -96,9 +96,6 @@ export default function Header({ locale: l, shopDomain=false }: { locale: Locale
               </button>
             ))}
           </div>
-          {!isShop&&<Link className="button small" href={site("/donate")}>
-            {t("Faire un don", "Donate")}
-          </Link>}
         </div>
       </header>
     </>

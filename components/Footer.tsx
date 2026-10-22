@@ -30,7 +30,6 @@ export default function Footer({ locale: l }: { locale: Locale }) {
             <li><a href="/activities">{t('Nos activités', 'Our activities')}</a></li>
             <li><a href="/news">{t('Actualités', 'News')}</a></li>
             <li><a href="/join">{t('Adhérer', 'Join us')}</a></li>
-            <li><a href="/donate">{t('Faire un don', 'Donate')}</a></li>
           </ul>
         </div>
 
